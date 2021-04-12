@@ -53,6 +53,9 @@ def MatchArgs(parsed_command: ParseCmd, format, max_args=0):
 
 	argtype = []
 	
+	if max_args < 0:
+		max_args = 0
+
 	if max_args == 0:
 		for arg in parsed_command['args'][0:parsed_command['args_count']]:
 			argtype.append(type(arg).__name__[0]) # get type char
