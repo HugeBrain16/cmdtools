@@ -3,7 +3,7 @@ import shlex
 
 __version__ = '0.1.0'
 
-def ParseCmd(command_string, prefix='/', max_args=64,eval=False):
+def ParseCmd(command_string, prefix='/', max_args=64, eval=False):
 	"""parse string commands, returns command name and arguments"""
 	res = re.findall(rf'^{prefix}(.*)',command_string)
 	argres = shlex.split(''.join(res))
@@ -21,7 +21,6 @@ def ParseCmd(command_string, prefix='/', max_args=64,eval=False):
 
 		if eval: return _EvalCmd(cmd) # only returns if command is valid
 		return cmd
-
 
 def _EvalCmd(parsed_command: ParseCmd):
 	"""evaluate literal arguments"""
@@ -42,7 +41,7 @@ def _EvalCmd(parsed_command: ParseCmd):
 
 			if res:
 				parsed_command['args'][i] = ev[1](parsed_command['args'][i])
-				break # has found correct data type
+				break # has found the correct data type
 
 	return parsed_command
 
@@ -84,7 +83,7 @@ def ProcessCmd(parsed_command: ParseCmd, callback, attr={}):
 	if type(parsed_command).__name__ != 'dict': raise TypeError("parsed_command must be a dict of parsed command")
 	if type(callback).__name__ != 'function': raise TypeError("callback is not a function")
 
-	if callback.__name__ != parsed_command['name']: raise NameError("callback name must be the same as command name") # callback name can be anything but yeah you can disable this if you want
+	if callback.__name__ != parsed_command['name']: raise NameError("callback name must be the same as the command name") # callback name can be anything but yeah you can disable this if you want
 
 	if not isinstance(attr, dict): raise TypeError("attributes must be in dict object")
 
