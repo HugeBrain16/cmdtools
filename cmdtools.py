@@ -1,6 +1,8 @@
 import re
 import shlex
 
+__version__ = '0.1.0'
+
 def ParseCmd(command_string, prefix='/', max_args=64,eval=False):
 	"""parse string commands, returns command name and arguments"""
 	res = re.findall(rf'^{prefix}(.*)',command_string)
