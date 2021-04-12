@@ -4,11 +4,11 @@ a module for parsing and processing commands.
 ## Installation
 to install this module you can use the methods below 
   
-using pip: 
-    - from pypi: `pip install cmdtools-py`  
-    - from github repository: `pip install git+https://github.com/HugeBrain16/cmdtools.git`  
+- using pip: 
+    + from pypi: `pip install cmdtools-py`  
+    + from github repository: `pip install git+https://github.com/HugeBrain16/cmdtools.git`  
   
-from source: `python setup.py install`  
+- from source: `python setup.py install`  
 
 ## Functions
   
