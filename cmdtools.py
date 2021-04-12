@@ -86,4 +86,9 @@ def ProcessCmd(parsed_command: ParseCmd, callback, attr={}):
 	for a in attr:
 		setattr(callback, a, attr[a])
 		
-	return callback(raw_args=parsed_command['args'],args=parsed_command['args'][0:parsed_command['args_count']])
+	ret = callback(raw_args=parsed_command['args'],args=parsed_command['args'][0:parsed_command['args_count']])
+
+	for a in attr:
+		delattr(callback, a)
+
+	return ret
