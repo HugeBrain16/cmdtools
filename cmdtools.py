@@ -45,15 +45,8 @@ def _EvalCmd(parsed_command: ParseCmd):
 
 	return parsed_command
 
-def MatchArgs(parsed_command: ParseCmd, format, max_args=0):
-	"""match argument formats, only works with eval"""
-
-	# format example: 'ssf', arguments: ['hell','o',10.0] matched
-
-	argtype = []
-	
-	if max_args < 0:
-		max_args = 0
+def _get_args_type_char(parsed_command: ParseCmd, max_args=0):
+	argtype = list()
 
 	if max_args == 0:
 		for arg in parsed_command['args'][0:parsed_command['args_count']]:
@@ -62,8 +55,20 @@ def MatchArgs(parsed_command: ParseCmd, format, max_args=0):
 		for arg in parsed_command['args'][0:max_args]:
 			argtype.append(type(arg).__name__[0]) # get type char
 
+	return argtype
+
+def MatchArgs(parsed_command: ParseCmd, format, max_args=0):
+	"""match argument formats, only works with eval"""
+
+	# format example: 'ssf', arguments: ['hell','o',10.0] matched
+	
+	if max_args < 0:
+		max_args = 0
+
 	format = format.replace(' ','')
 	format = list(format)
+
+	argtype = _get_args_type_char(parsed_command, max_args)
 
 	matched = 0
 	for i,t in enumerate(argtype):
@@ -90,7 +95,9 @@ def ProcessCmd(parsed_command: ParseCmd, callback, attr={}):
 	for a in attr:
 		setattr(callback, a, attr[a])
 		
-	ret = callback(raw_args=parsed_command['args'],args=parsed_command['args'][0:parsed_command['args_count']])
+	ret = callback(raw_args=parsed_command['args'],
+				args=parsed_command['args'][0:parsed_command['args_count']]
+		  	)
 
 	for a in attr:
 		delattr(callback, a)
