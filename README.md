@@ -1,12 +1,21 @@
 # cmdtools
 a module for parsing and processing commands.
-
-### Functions
   
-##### ParseArgs
+## Installation
+to install this module you can use the methods below 
+  
+using pip: 
+    - from pypi: `pip install cmdtools-py`  
+    - from github repository: `pip install git+https://github.com/HugeBrain16/cmdtools.git`  
+  
+from source: `python setup.py install`  
+
+## Functions
+  
+#### ParseArgs
 Parse text commands into dictionary
   
-###### Arguments
+##### Arguments
 - `command_string`
     + command string to parse
 - `prefix`
@@ -34,7 +43,7 @@ Matches arguments by argument data types
 - `max_args`
     + max arguments matches, Default: `0`
   
-### Examples
+## Examples
 Basic example
 ```py
 import cmdtools
