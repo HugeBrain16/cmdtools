@@ -1,5 +1,5 @@
 # cmdtools
-module for parsing and processing commands.
+a module for parsing and processing commands.
 
 ### Examples
 Basic example
