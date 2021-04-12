@@ -1,7 +1,21 @@
 # cmdtools
 module for parsing and processing commands.
 
-### Example
+### Examples
+Basic example
+```py
+import cmdtools
+
+def ping(raw_args, args):
+    print("pong.")
+
+cmd = '/ping'
+_cmd = cmdtools.ParseCmd(cmd)
+
+cmdtools.ProcessCmd(_cmd, ping)
+```
+  
+Parse command with arguments
 ```py
 import cmdtools
 
@@ -16,4 +30,25 @@ cmdtools.ProcessCmd(_cmd, greet,
         'name': _cmd['args'][0]
     }
 )
+```
+  
+Parsing command with more than one argument and different data types
+```py
+def give(raw_args, args):
+    print(f"You gave {give.item_amount} {give.item_name}s to {give.name}")
+
+cmd = '/give "Josh" "Apple" 10'
+_cmd = ParseCmd(cmd,eval=True) # we're going to use `MatchArgs` function which only supported for `eval` parsed command arguments
+
+# check command
+if MatchArgs(_cmd, 'ssi', max_args=3): # format indicates ['str','str','int'], only match 3 arguments
+    ProcessCmd(_cmd, give,
+        attr={
+            'name': _cmd['args'][0],
+            'item_name': _cmd['args'][1],
+            'item_amount': _cmd['args'][2]
+        }
+    )
+else:
+    print('Correct Usage: /give <name: [str]> <item-name: [str]> <item-amount: [int]>')
 ```
