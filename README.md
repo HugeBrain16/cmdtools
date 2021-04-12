@@ -1,6 +1,39 @@
 # cmdtools
 a module for parsing and processing commands.
 
+### Functions
+  
+##### ParseArgs
+Parse text commands into dictionary
+  
+###### Arguments
+- `command_string`
+    + command string to parse
+- `prefix`
+    + prefix of the command, Default: `/`
+- `max_args`
+    + max arguments, the rest are just empty, Default: `64`
+- `eval`
+    + eval...? like data types conversion...? yeah, Default: `False` 
+  
+#### _EvalCmd
+Uhh... this does something like data conversion for command arguments
+  
+##### Arguments
+- `parsed_command`
+    + parsed command in a `dict` object
+
+#### MatchArgs
+Matches arguments by argument data types
+
+##### Arguments
+- `parsed_command`
+    + parsed command in a `dict` object
+- `format`
+    + format
+- `max_args`
+    + max arguments matches, Default: `0`
+  
 ### Examples
 Basic example
 ```py
