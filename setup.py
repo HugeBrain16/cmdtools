@@ -8,7 +8,7 @@ def getversion(file='cmdtools.py'):
 			return res[0].strip().replace("'",'')
 
 setuptools.setup(
-name='cmdtools',
+name='cmdtools-py',
 description='a module for parsing and processing commands.',
 version=getversion(),
 author='HugeBrain16',
