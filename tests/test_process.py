@@ -29,5 +29,17 @@ class TestProcess(unittest.TestCase):
 
 		self.assertTrue(match, 'boo')
 
+	def test_default(self):
+		cmd = '/get'
+		cmd = cmdtools.Cmd(cmd)
+		cmd.parse()
+
+		res = cmdtools.ProcessCmd(cmd, TestProcess.get)
+
+		self.assertEqual("Hello World",res)
+
+	def get(text="Hello World"):
+		return text
+
 	def sum(*args):
 		return sum(args)
