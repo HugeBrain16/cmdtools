@@ -1,10 +1,24 @@
 import re
 import shlex
+import inspect
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
+
+class BaseException(Exception):
+	def __init__(self, message, *args):
+		self.message = message
+		self.args = args
+
+	def __str__(self):
+		return self.message
 
 class ParsingError(Exception):
-	"""when beep beep goes beep boop"""
+	pass
+
+class ProcessError(Exception):
+	pass
+
+class MissingRequiredArgument(BaseException):
 	pass
 
 def _get_args_type_char(parsed_command, max_args=0):
@@ -75,7 +89,7 @@ class Cmd:
 		for i in range(len(argres), self.max_args): # insert empty arguments
 			argres.insert(i,'')
 
-		if argres[0]:
+		if argres:
 			cmd = {'name': argres[0], 'args': argres[1:], 'args_count': argsc}
 
 			if eval: self.parsed_command = _eval_cmd(cmd) # only returns if command is valid
@@ -113,7 +127,7 @@ def MatchArgs(parsed_command_object, format, max_args = 0):
 	argtype = _get_args_type_char(parsed_command, max_args)
 
 	if len(format) != len(argtype):
-		raise ValueError("format length not same as arguments length")
+		raise ValueError("format length is not the same as the arguments length")
 
 	matched = 0
 	for i,t in enumerate(argtype):
@@ -128,7 +142,7 @@ def MatchArgs(parsed_command_object, format, max_args = 0):
 
 	return False
 
-def ProcessCmd(parsed_command_object, callback, attr={}):
+def ProcessCmd(parsed_command_object, callback, error_handler_callback=None, attr={}):
 	"""process command, to tell which function for processing the command, i guess..."""
 	
 	parsed_command = getattr(parsed_command_object, 'parsed_command', None)
@@ -138,19 +152,36 @@ def ProcessCmd(parsed_command_object, callback, attr={}):
 
 	if type(parsed_command).__name__ != 'dict': raise TypeError("parsed_command must be a dict of parsed command")
 	if type(callback).__name__ != 'function': raise TypeError("callback is not a function")
+	if error_handler_callback and type(error_handler_callback).__name__ != 'function': raise TypeError("error handler callback is not a function")
 
-	if callback.__name__ != parsed_command['name']: raise NameError("callback name must be the same as the command name") # callback name can be anything but yeah you can disable this if you want
+	if callback.__name__ != parsed_command['name']: raise NameError("callback name must be the same as the command name")
+	if error_handler_callback and not error_handler_callback.__name__.startswith('error_'): raise NameError("error handler callback must starts with `error_` prefix")
 
 	if not isinstance(attr, dict): raise TypeError("attributes must be in dict object")
 
-	for a in attr:
-		setattr(callback, a, attr[a])
-		
-	ret = callback(raw_args=parsed_command['args'],
-				args=parsed_command['args'][0:parsed_command['args_count']]
-		  	)
+	ret = None
+	try:
+		callback_params = inspect.getfullargspec(callback)[0]
 
-	for a in attr:
-		delattr(callback, a)
+		for a in attr:
+			setattr(callback, a, attr[a])
+		
+		if len(callback_params) > parsed_command['args_count']:
+			exc = MissingRequiredArgument(f'missing required argument : {callback_params[parsed_command["args_count"]]}',
+					callback_params[parsed_command["args_count"]]
+				)
+			setattr(exc, 'param', callback_params[parsed_command['args_count']])
+			raise exc
+
+		ret = callback(*parsed_command['args'][0:len(callback_params)])
+
+		for a in attr:
+			delattr(callback, a)
+
+	except Exception as exception:
+		if error_handler_callback == None:
+			raise ProcessError(f"an error occurred during processing callback '{callback.__name__}()' for command '{parsed_command['name']}', no error handler callback specified, exception: ", exception)
+		else:
+			error_handler_callback(error=exception)
 
 	return ret
