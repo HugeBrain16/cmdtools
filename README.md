@@ -71,7 +71,7 @@ def add(num1, num2):
     print(num1 + num2)
 
 cmd = cmdtools.Cmd('/add')
-cmd.parse()
+cmd.parse(eval=True)
 
 cmdtools.ProcessCmd(cmd, add, error_add)
 ```
