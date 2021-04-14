@@ -29,5 +29,5 @@ class TestProcess(unittest.TestCase):
 
 		self.assertTrue(match, 'boo')
 
-	def sum(raw_args, args):
+	def sum(*args):
 		return sum(args)
