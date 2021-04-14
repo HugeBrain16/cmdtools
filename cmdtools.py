@@ -1,28 +1,29 @@
 import re
 import shlex
 
-__version__ = '0.1.0'
+__version__ = '1.0.0'
 
-def ParseCmd(command_string, prefix='/', max_args=64, eval=False):
-	"""parse string commands, returns command name and arguments"""
-	res = re.findall(rf'^{prefix}(.*)',command_string)
-	argres = shlex.split(''.join(res))
-	argsc = -1
-	for arg in argres:
-		if not arg:
-			break
-		argsc += 1
+class ParsingError(Exception):
+	"""when beep beep goes beep boop"""
+	pass
 
-	for i in range(len(argres),max_args): # insert empty arguments
-		argres.insert(i,'')
+def _get_args_type_char(parsed_command, max_args=0):
+	argtype = list()
 
-	if argres[0]:
-		cmd = {'name': argres[0], 'args': argres[1:], 'args_count': argsc}
+	if max_args == 0:
+		for arg in parsed_command['args'][0:parsed_command['args_count']]:
+			if not arg: continue
 
-		if eval: return _EvalCmd(cmd) # only returns if command is valid
-		return cmd
+			argtype.append(type(arg).__name__[0]) # get type char
+	else:
+		for arg in parsed_command['args'][0:max_args]:
+			if not arg: continue
 
-def _EvalCmd(parsed_command: ParseCmd):
+			argtype.append(type(arg).__name__[0]) # get type char
+
+	return argtype
+
+def _eval_cmd(parsed_command):
 	"""evaluate literal arguments"""
 	if type(parsed_command).__name__ != 'dict': return
 
@@ -45,30 +46,74 @@ def _EvalCmd(parsed_command: ParseCmd):
 
 	return parsed_command
 
-def _get_args_type_char(parsed_command: ParseCmd, max_args=0):
-	argtype = list()
+class Cmd:
+	def __init__(self, command_string, prefix='/', max_args=0):
+		self.parsed_command = None
+		self.name = None
+		self.args = []
+		self.args_count = len(self.args)
+		self.command_string = command_string
+		self.prefix = prefix
+		self.max_args = max_args
 
-	if max_args == 0:
-		for arg in parsed_command['args'][0:parsed_command['args_count']]:
-			argtype.append(type(arg).__name__[0]) # get type char
-	else:
-		for arg in parsed_command['args'][0:max_args]:
-			argtype.append(type(arg).__name__[0]) # get type char
+	def get_dict(self):
+		"""return parsed command"""
+		return self.parsed_command
 
-	return argtype
+	def parse(self, eval=False):
+		"""parse string commands, returns command name and arguments"""
+		res = re.findall(rf'^{self.prefix}(.*)',self.command_string)
+		argres = shlex.split(''.join(res))
+		argsc = len(argres[1:])
 
-def MatchArgs(parsed_command: ParseCmd, format, max_args=0):
+		if self.max_args == 0:
+			self.max_args = argsc
+
+		if argsc > self.max_args:
+			raise ParsingError(f"arguments exceeds max arguments: ({self.max_args})")
+
+		for i in range(len(argres), self.max_args): # insert empty arguments
+			argres.insert(i,'')
+
+		if argres[0]:
+			cmd = {'name': argres[0], 'args': argres[1:], 'args_count': argsc}
+
+			if eval: self.parsed_command = _eval_cmd(cmd) # only returns if command is valid
+			else:
+				self.parsed_command = cmd
+
+			self.name = self.parsed_command['name']
+			self.args = self.parsed_command['args']
+			self.args_count = self.parsed_command['args_count']
+
+	def __str__(self):
+		return f"<Raw: \"{self.command_string}\", Name: \"{self.name}\", Args: {self.args[0:self.args_count]}>"
+
+def MatchArgs(parsed_command_object, format, max_args = 0):
 	"""match argument formats, only works with eval"""
 
 	# format example: 'ssf', arguments: ['hell','o',10.0] matched
+
+	parsed_command = getattr(parsed_command_object, 'parsed_command', None)
+	if max_args == 0:
+		max_args = getattr(parsed_command_object, 'max_args', 0)
+
+	if parsed_command == None:
+		raise TypeError("Command object appear to be not parsed")
 	
 	if max_args < 0:
 		max_args = 0
+
+	if not format:
+		raise ValueError("no format specified")
 
 	format = format.replace(' ','')
 	format = list(format)
 
 	argtype = _get_args_type_char(parsed_command, max_args)
+
+	if len(format) != len(argtype):
+		raise ValueError("format length not same as arguments length")
 
 	matched = 0
 	for i,t in enumerate(argtype):
@@ -83,8 +128,14 @@ def MatchArgs(parsed_command: ParseCmd, format, max_args=0):
 
 	return False
 
-def ProcessCmd(parsed_command: ParseCmd, callback, attr={}):
+def ProcessCmd(parsed_command_object, callback, attr={}):
 	"""process command, to tell which function for processing the command, i guess..."""
+	
+	parsed_command = getattr(parsed_command_object, 'parsed_command', None)
+
+	if parsed_command == None:
+		raise TypeError("Command object appear to be not parsed")
+
 	if type(parsed_command).__name__ != 'dict': raise TypeError("parsed_command must be a dict of parsed command")
 	if type(callback).__name__ != 'function': raise TypeError("callback is not a function")
 
