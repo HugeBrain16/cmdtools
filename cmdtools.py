@@ -2,7 +2,7 @@ import re
 import shlex
 import inspect
 
-__version__ = '1.2.0'
+__version__ = '1.1.1'
 
 class BaseException(Exception):
 	def __init__(self, message, *args):
