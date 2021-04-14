@@ -3,7 +3,7 @@ import re
 
 def getversion(file='cmdtools.py'):
 	for line in open(file,'r').readlines():
-		res = re.findall(r'^__version__\s*=(.*)',line.strip())
+		res = re.findall(r'^\s*__version__\s*=(.*)',line.strip())
 		if res:
 			return res[0].strip().replace("'",'')
 
