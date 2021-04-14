@@ -17,7 +17,7 @@ Basic example
 ```py
 import cmdtools
 
-def ping(raw_args, args):
+def ping():
     print("pong.")
 
 _cmd = cmdtools.Cmd('/ping')
@@ -30,38 +30,53 @@ Parse command with arguments
 ```py
 import cmdtools
 
-def greet(raw_args, args):
-    print(f"Hello, {greet.name}, nice to meet you")
+def greet(name):
+    print(f"Hello, {name}, nice to meet you")
 
 _cmd = cmdtools.Cmd('/greet "Josh"')
 _cmd.parse()
 
-cmdtools.ProcessCmd(_cmd, greet,
-    attr= { # assign attributes to the callback
-        'name': _cmd.args[0]
-    }
-)
+cmdtools.ProcessCmd(_cmd, greet)
 ```
   
 Parsing command with more than one argument and different data types
 ```py
 import cmdtools
 
-def give(raw_args, args):
-    print(f"You gave {give.item_amount} {give.item_name}s to {give.name}")
+def give(name, item_name, item_amount):
+    print(f"You gave {item_amount} {item_name}s to {name}")
 
 _cmd = cmdtools.Cmd('/give "Josh" "Apple" 10')
 _cmd.parse(eval=True) # we're going to use `MatchArgs` function which only supported for `eval` parsed command arguments
 
 # check command
 if cmdtools.MatchArgs(_cmd, 'ssi', max_args=3): # format indicates ['str','str','int'], only match 3 arguments
-    cmdtools.ProcessCmd(_cmd, give,
-        attr={
-            'name': _cmd.args[0],
-            'item_name': _cmd.args[1],
-            'item_amount': _cmd.args[2]
-        }
-    )
+    cmdtools.ProcessCmd(_cmd, give)
 else:
     print('Correct Usage: /give <name: [str]> <item-name: [str]> <item-amount: [int]>')
 ```
+  
+command with error handling example
+```py
+import cmdtools
+
+def error_add(error):
+    if isinstance(error, cmdtools.MissingRequiredArgument):
+        if error.param == 'num1':
+            print('you need to specify the first number')
+        if error.param == 'num2':
+            print('you need to specify the second number')
+
+def add(num1, num2):
+    print(num1 + num2)
+
+cmd = cmdtools.Cmd('/add')
+cmd.parse()
+
+cmdtools.ProcessCmd(cmd, add, error_add)
+```
+  
+## Exceptions
+- ParsingError
+- MissingRequiredArgument
+- ProcessError
