@@ -1,4 +1,6 @@
 # cmdtools
+[![tests](https://github.com/HugeBrain16/cmdtools/actions/workflows/python-package.yml/badge.svg)](https://github.com/HugeBrain16/cmdtools/actions/workflows/python-package.yml)
+  
 a module for parsing and processing commands.
   
 ## Installation
