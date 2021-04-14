@@ -2,7 +2,7 @@ import re
 import shlex
 import inspect
 
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 
 class BaseException(Exception):
 	def __init__(self, message, *args):
@@ -161,19 +161,39 @@ def ProcessCmd(parsed_command_object, callback, error_handler_callback=None, att
 
 	ret = None
 	try:
-		callback_params = inspect.getfullargspec(callback)[0]
+		callback_argspec = inspect.getfullargspec(callback)
+		callback_params = callback_argspec.args
+		callback_defaults = callback_argspec.defaults
+
+		if callback_defaults != None:
+			if len(callback_defaults) == len(callback_params):
+				for cdef in callback_defaults[parsed_command['args_count']:]:
+					parsed_command['args_count'] += 1
+					parsed_command['args'].insert(parsed_command['args_count'],cdef)
+			else:
+				for cdef in callback_defaults[parsed_command['args_count']-1:]:
+					parsed_command['args_count'] += 1
+					parsed_command['args'].insert(parsed_command['args_count'],cdef)
 
 		for a in attr:
 			setattr(callback, a, attr[a])
 		
 		if len(callback_params) > parsed_command['args_count']:
-			exc = MissingRequiredArgument(f'missing required argument : {callback_params[parsed_command["args_count"]]}',
-					callback_params[parsed_command["args_count"]]
-				)
+			if callback_defaults != None:
+				exc = MissingRequiredArgument(f'missing required argument : {callback_params[parsed_command["args_count"]-1]}',
+						callback_params[parsed_command["args_count"]-1]
+					)
+			else:
+				exc = MissingRequiredArgument(f'missing required argument : {callback_params[parsed_command["args_count"]]}',
+						callback_params[parsed_command["args_count"]]
+					)
 			setattr(exc, 'param', callback_params[parsed_command['args_count']])
 			raise exc
-
-		ret = callback(*parsed_command['args'][0:len(callback_params)])
+		
+		if callback_argspec.varargs == None:
+			ret = callback(*parsed_command['args'][0:len(callback_params)])
+		else:
+			ret = callback(*parsed_command['args'][0:parsed_command['args_count']])
 
 		for a in attr:
 			delattr(callback, a)
