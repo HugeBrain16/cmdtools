@@ -2,7 +2,7 @@ import re
 import shlex
 import inspect
 
-__version__ = '1.1.2'
+__version__ = '1.2.0'
 
 class BaseException(Exception):
 	def __init__(self, message, *args):
@@ -134,8 +134,15 @@ def MatchArgs(parsed_command_object, format, max_args = 0):
 		if t == 'i' or t == 'f':
 			if format[i] == 's':
 				matched += 1 # allow int or float as 's' format
-		if t == format[i]:
-			matched += 1
+			elif format[i] == 'c' and len(str(parsed_command['args'][i])) == 1 and t == 'i':
+				matched += 1 # and char if only a digit for int
+			elif t == format[i]:
+				matched += 1
+		elif t == 's':
+			if format[i] == 'c' and len(str(parsed_command['args'][i])) == 1:
+				matched += 1
+			elif t == format[i]:
+				matched += 1
 
 	if matched == len(format):
 		return True
