@@ -2,7 +2,7 @@ import re
 import shlex
 import inspect
 
-__version__ = '1.1.1'
+__version__ = '1.1.2'
 
 class BaseException(Exception):
 	def __init__(self, message, *args):
@@ -153,9 +153,6 @@ def ProcessCmd(parsed_command_object, callback, error_handler_callback=None, att
 	if type(parsed_command).__name__ != 'dict': raise TypeError("parsed_command must be a dict of parsed command")
 	if type(callback).__name__ != 'function': raise TypeError("callback is not a function")
 	if error_handler_callback and type(error_handler_callback).__name__ != 'function': raise TypeError("error handler callback is not a function")
-
-	if callback.__name__ != parsed_command['name']: raise NameError("callback name must be the same as the command name")
-	if error_handler_callback and not error_handler_callback.__name__.startswith('error_'): raise NameError("error handler callback must starts with `error_` prefix")
 
 	if not isinstance(attr, dict): raise TypeError("attributes must be in dict object")
 
