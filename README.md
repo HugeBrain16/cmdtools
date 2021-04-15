@@ -56,6 +56,23 @@ else:
     print('Correct Usage: /give <name: [str]> <item-name: [str]> <item-amount: [int]>')
 ```
   
+command with attributes
+```py
+import cmdtools
+
+def test():
+    print(test.text)
+
+_cmd = cmdtools.Cmd('/test')
+_cmd.parse()
+
+cmdtools.ProcessCmd(_cmd, test,
+    attr={ # assign attributes to the callback
+        'text': "Hello World"
+    }
+)
+```
+  
 command with error handling example
 ```py
 import cmdtools
