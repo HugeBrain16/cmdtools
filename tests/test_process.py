@@ -5,7 +5,7 @@ class TestProcess(unittest.TestCase):
 	def test_process(self):
 		cmd = '/sum 10 10 10'
 		cmd = cmdtools.Cmd(cmd)
-		cmd.parse(eval=True)
+		cmd.parse(eval_args=True)
 
 		res = cmdtools.ProcessCmd(cmd, TestProcess.sum)
 
@@ -14,7 +14,7 @@ class TestProcess(unittest.TestCase):
 	def test_match(self):
 		cmd = '/sell "Gold" 50'
 		cmd = cmdtools.Cmd(cmd)
-		cmd.parse(eval=True)
+		cmd.parse(eval_args=True)
 
 		match = cmdtools.MatchArgs(cmd, 'si')
 
@@ -23,7 +23,7 @@ class TestProcess(unittest.TestCase):
 	def test_match_(self):
 		cmd = '/add 10 40 20 59'
 		cmd = cmdtools.Cmd(cmd)
-		cmd.parse(eval=True)
+		cmd.parse(eval_args=True)
 
 		match = cmdtools.MatchArgs(cmd, ('i'*cmd.args_count))
 
