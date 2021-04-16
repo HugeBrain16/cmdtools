@@ -47,7 +47,7 @@ def give(name, item_name, item_amount):
     print(f"You gave {item_amount} {item_name}s to {name}")
 
 _cmd = cmdtools.Cmd('/give "Josh" "Apple" 10')
-_cmd.parse(eval=True) # we're going to use `MatchArgs` function which only supported for `eval` parsed command arguments
+_cmd.parse(eval_args=True) # we're going to use `MatchArgs` function which only supported for `eval` parsed command arguments
 
 # check command
 if cmdtools.MatchArgs(_cmd, 'ssi', max_args=3): # format indicates ['str','str','int'], only match 3 arguments
@@ -67,7 +67,7 @@ _cmd = cmdtools.Cmd('/test')
 _cmd.parse()
 
 cmdtools.ProcessCmd(_cmd, test,
-    attr={ # assign attributes to the callback
+    attrs={ # assign attributes to the callback
         'text': "Hello World"
     }
 )
@@ -88,7 +88,7 @@ def add(num1, num2):
     print(num1 + num2)
 
 cmd = cmdtools.Cmd('/add')
-cmd.parse(eval=True)
+cmd.parse(eval_args=True)
 
 cmdtools.ProcessCmd(cmd, add, error_add)
 ```
