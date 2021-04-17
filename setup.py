@@ -6,7 +6,11 @@ def getversion(file="cmdtools.py"):
     for line in open(file, "r").readlines():
         res = re.findall(r"^\s*__version__\s*=(.*)", line.strip())
         if res:
-            return res[0].strip().replace("'", "")
+            res = res[0].strip()
+            if res.startswith('"') and res.endswith('"'):
+                return res.replace('"', "")
+            elif res.startswith("'") and res.endswith("'"):
+                return res.replace('"', "")
 
 
 setuptools.setup(
