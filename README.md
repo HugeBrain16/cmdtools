@@ -93,7 +93,7 @@ cmd.parse(eval_args=True)
 cmdtools.ProcessCmd(cmd, add, error_add)
 ```
   
-asyncio support
+asynchronous support
 ```py
 import cmdtools
 import asyncio
