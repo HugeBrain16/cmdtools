@@ -93,6 +93,23 @@ cmd.parse(eval_args=True)
 cmdtools.ProcessCmd(cmd, add, error_add)
 ```
   
+asyncio support
+```py
+import cmdtools
+import asyncio
+
+async def _say(text):
+    print(text)
+
+async def main():
+    cmd = cmdtools.Cmd('/say "Hello World"')
+    cmd.parse()
+
+    await cmdtools.AioProcessCmd(cmd, _say)
+
+asyncio.run(main())
+```
+  
 ## Exceptions
 - ParsingError
 - MissingRequiredArgument
