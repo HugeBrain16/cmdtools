@@ -4,7 +4,7 @@ import re
 import shlex
 import inspect
 
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 
 
 class CmdBaseException(Exception):
@@ -230,6 +230,61 @@ def _process_callback(parsed_command, callback, error_handler_callback):
     return ret
 
 
+async def coro_process_callback(parsed_command, callback, error_handler_callback):
+    """process callback for coroutine"""
+    ret = None
+    try:
+        callback_argspec = inspect.getfullargspec(callback)
+        callback_params = callback_argspec.args
+        callback_defaults = callback_argspec.defaults
+
+        if callback_defaults is not None:
+            if len(callback_defaults) == len(callback_params):
+                for cdef in callback_defaults[parsed_command["args_count"] :]:
+                    parsed_command["args_count"] += 1
+                    parsed_command["args"].insert(parsed_command["args_count"], cdef)
+            else:
+                for cdef in callback_defaults[parsed_command["args_count"] - 1 :]:
+                    parsed_command["args_count"] += 1
+                    parsed_command["args"].insert(parsed_command["args_count"], cdef)
+
+        if len(callback_params) > parsed_command["args_count"]:
+            if callback_defaults is not None:
+                exc = MissingRequiredArgument(
+                    "missing required argument: "
+                    + f'{callback_params[parsed_command["args_count"]-1]}',
+                    callback_params[parsed_command["args_count"] - 1],
+                )
+            else:
+                exc = MissingRequiredArgument(
+                    "missing required argument: "
+                    + f'{callback_params[parsed_command["args_count"]]}',
+                    callback_params[parsed_command["args_count"]],
+                )
+            setattr(exc, "param", callback_params[parsed_command["args_count"]])
+            raise exc
+
+        if callback_argspec.varargs is None:
+            ret = await callback(*parsed_command["args"][0 : len(callback_params)])
+        else:
+            ret = await callback(
+                *parsed_command["args"][0 : parsed_command["args_count"]]
+            )
+
+    except Exception as exception:
+        if error_handler_callback is None:
+            raise ProcessError(
+                "an error occurred during processing callback '"
+                + f"{callback.__name__}()' for command '{parsed_command['name']}, "
+                + "no error handler callback specified, exception: ",
+                exception,
+            ) from exception
+
+        await error_handler_callback(error=exception)
+
+    return ret
+
+
 def ProcessCmd(
     parsed_command_object, callback, error_handler_callback=None, attrs=None
 ):
@@ -256,6 +311,39 @@ def ProcessCmd(
         setattr(callback, attr, attrs[attr])
 
     ret = _process_callback(parsed_command, callback, error_handler_callback)
+
+    for attr in attrs:
+        delattr(callback, attr)
+
+    return ret
+
+
+async def AioProcessCmd(
+    parsed_command_object, callback, error_handler_callback=None, attrs=None
+):
+    """coroutine process cmd"""
+
+    parsed_command = getattr(parsed_command_object, "parsed_command", None)
+
+    if parsed_command is None:
+        raise TypeError("Command object appear to be not parsed")
+    if attrs is None:
+        attrs = {}
+
+    if type(parsed_command).__name__ != "dict":
+        raise TypeError("parsed_command must be a dict of parsed command")
+    if type(callback).__name__ != "function":
+        raise TypeError("callback is not a function")
+    if error_handler_callback and type(error_handler_callback).__name__ != "function":
+        raise TypeError("error handler callback is not a function")
+
+    if not isinstance(attrs, dict):
+        raise TypeError("attributes must be in dict object")
+
+    for attr in attrs:
+        setattr(callback, attr, attrs[attr])
+
+    ret = await coro_process_callback(parsed_command, callback, error_handler_callback)
 
     for attr in attrs:
         delattr(callback, attr)
