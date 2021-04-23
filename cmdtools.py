@@ -4,7 +4,7 @@ import re
 import shlex
 import inspect
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 
 class CmdBaseException(Exception):
@@ -310,10 +310,18 @@ def ProcessCmd(
     for attr in attrs:
         setattr(callback, attr, attrs[attr])
 
+    if error_handler_callback is not None:
+        for attr in attrs:
+            setattr(error_handler_callback, attr, attrs[attr])
+
     ret = _process_callback(parsed_command, callback, error_handler_callback)
 
     for attr in attrs:
         delattr(callback, attr)
+
+    if error_handler_callback is not None:
+        for attr in attrs:
+            delattr(error_handler_callback, attr)
 
     return ret
 
