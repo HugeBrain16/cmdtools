@@ -4,7 +4,7 @@ import re
 import shlex
 import inspect
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 
 
 class CmdBaseException(Exception):
@@ -351,9 +351,17 @@ async def AioProcessCmd(
     for attr in attrs:
         setattr(callback, attr, attrs[attr])
 
+    if error_handler_callback is not None:
+        for attr in attrs:
+            setattr(error_handler_callback, attr, attrs[attr])
+
     ret = await coro_process_callback(parsed_command, callback, error_handler_callback)
 
     for attr in attrs:
         delattr(callback, attr)
+
+    if error_handler_callback is not None:
+        for attr in attrs:
+            delattr(error_handler_callback, attr)
 
     return ret
