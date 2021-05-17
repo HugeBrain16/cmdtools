@@ -4,7 +4,7 @@ import re
 import shlex
 import inspect
 
-__version__ = "1.5.0"
+__version__ = "1.5.1"
 
 
 class CmdBaseException(Exception):
@@ -208,7 +208,7 @@ def _process_callback(parsed_command, callback, error_handler_callback):
                     + f'{callback_params[parsed_command["args_count"]]}',
                     callback_params[parsed_command["args_count"]],
                 )
-            setattr(exc, "param", callback_params[parsed_command["args_count"]])
+            setattr(exc, "param", callback_params[parsed_command["args_count"] - 1])
             raise exc
 
         if callback_argspec.varargs is None:
