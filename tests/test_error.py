@@ -1,17 +1,33 @@
-import unittest
 from .. import cmdtools
 
 
-class TestError(unittest.TestCase):
-    def test_error(self):
-        cmd = cmdtools.Cmd("/say")
+def test_error():
+    cmd = cmdtools.Cmd("/say")
+    cmd.parse()
 
-    def say(text):
-        print(text)
+    cmdtools.ProcessCmd(cmd, say, error_say)
 
-    def error_say(self, error):
-        if isinstance(error, cmdtools.ArgumentError):
-            self.assertEqual(error.param, "text", "boo")
 
-            if error.param == "text":
-                print("you need to specify a message to say")
+def say(text):
+    print(text)
+
+
+def error_say(error):
+    if isinstance(error, cmdtools.MissingRequiredArgument):
+        assert error.param == "text", "boo"
+
+
+def test_default_error():
+    cmd = cmdtools.Cmd("/say")
+    cmd.parse()
+
+    cmdtools.ProcessCmd(cmd, default_say, error_default_say)
+
+
+def default_say(text, name="No"):
+    print(f"{name} says: {text}")
+
+
+def error_default_say(error):
+    if isinstance(error, cmdtools.MissingRequiredArgument):
+        assert error.param == "text", "boo"
