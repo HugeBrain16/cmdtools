@@ -4,7 +4,7 @@ import re
 import shlex
 import inspect
 
-__version__ = "1.5.1"
+__version__ = "1.5.2"
 
 
 class CmdBaseException(Exception):
@@ -29,6 +29,11 @@ class ProcessError(Exception):
 
 class MissingRequiredArgument(CmdBaseException):
     """raised when command's positional argument is missing"""
+
+    def __init__(self, message, param):
+        self.message = message
+        self.param = param
+        super().__init__(self.message)
 
 
 def _get_args_type_char(parsed_command, max_args=0):
@@ -181,40 +186,38 @@ def MatchArgs(parsed_command_object, format_match, max_args=0):
 def _process_callback(parsed_command, callback, error_handler_callback):
     ret = None
     try:
-        callback_argspec = inspect.getfullargspec(callback)
-        callback_params = callback_argspec.args
-        callback_defaults = callback_argspec.defaults
+        cargspec = inspect.getfullargspec(callback)
+        cparams = cargspec.args
+        cdefaults = cargspec.defaults
 
-        if callback_defaults is not None:
-            if len(callback_defaults) == len(callback_params):
-                for cdef in callback_defaults[parsed_command["args_count"] :]:
-                    parsed_command["args_count"] += 1
-                    parsed_command["args"].insert(parsed_command["args_count"], cdef)
-            else:
-                for cdef in callback_defaults[parsed_command["args_count"] - 1 :]:
-                    parsed_command["args_count"] += 1
-                    parsed_command["args"].insert(parsed_command["args_count"], cdef)
-
-        if len(callback_params) > parsed_command["args_count"]:
-            if callback_defaults is not None:
-                exc = MissingRequiredArgument(
+        if cdefaults is None:
+            if len(parsed_command["args"]) < len(cparams):
+                raise MissingRequiredArgument(
                     "missing required argument: "
-                    + f'{callback_params[parsed_command["args_count"]-1]}',
-                    callback_params[parsed_command["args_count"] - 1],
+                    + cparams[len(parsed_command["args"])],
+                    param=cparams[len(parsed_command["args"])],
                 )
-            else:
-                exc = MissingRequiredArgument(
-                    "missing required argument: "
-                    + f'{callback_params[parsed_command["args_count"]]}',
-                    callback_params[parsed_command["args_count"]],
-                )
-            setattr(exc, "param", callback_params[parsed_command["args_count"] - 1])
-            raise exc
 
-        if callback_argspec.varargs is None:
-            ret = callback(*parsed_command["args"][0 : len(callback_params)])
         else:
-            ret = callback(*parsed_command["args"][0 : parsed_command["args_count"]])
+
+            posargs_length = len(cparams) - len(cdefaults)
+
+            if len(parsed_command["args"]) < posargs_length:
+                raise MissingRequiredArgument(
+                    "missing required argument: "
+                    + cparams[len(parsed_command["args"])],
+                    param=cparams[len(parsed_command["args"])],
+                )
+
+            if (len(parsed_command) - posargs_length) < len(cdefaults):
+                for darg in cdefaults:
+                    parsed_command["args_count"] += 1
+                    parsed_command["args"].insert(parsed_command["args_count"], darg)
+
+        if cargspec.varargs is None:
+            ret = callback(*parsed_command["args"][: len(cparams)])
+        else:
+            ret = callback(*parsed_command["args"][: parsed_command["args_count"]])
 
     except Exception as exception:
         if error_handler_callback is None:
@@ -234,41 +237,39 @@ async def coro_process_callback(parsed_command, callback, error_handler_callback
     """process callback for coroutine"""
     ret = None
     try:
-        callback_argspec = inspect.getfullargspec(callback)
-        callback_params = callback_argspec.args
-        callback_defaults = callback_argspec.defaults
+        cargspec = inspect.getfullargspec(callback)
+        cparams = cargspec.args
+        cdefaults = cargspec.defaults
 
-        if callback_defaults is not None:
-            if len(callback_defaults) == len(callback_params):
-                for cdef in callback_defaults[parsed_command["args_count"] :]:
-                    parsed_command["args_count"] += 1
-                    parsed_command["args"].insert(parsed_command["args_count"], cdef)
-            else:
-                for cdef in callback_defaults[parsed_command["args_count"] - 1 :]:
-                    parsed_command["args_count"] += 1
-                    parsed_command["args"].insert(parsed_command["args_count"], cdef)
-
-        if len(callback_params) > parsed_command["args_count"]:
-            if callback_defaults is not None:
-                exc = MissingRequiredArgument(
+        if cdefaults is None:
+            if len(parsed_command["args"]) < len(cparams):
+                raise MissingRequiredArgument(
                     "missing required argument: "
-                    + f'{callback_params[parsed_command["args_count"]-1]}',
-                    callback_params[parsed_command["args_count"] - 1],
+                    + cparams[len(parsed_command["args"])],
+                    param=cparams[len(parsed_command["args"])],
                 )
-            else:
-                exc = MissingRequiredArgument(
-                    "missing required argument: "
-                    + f'{callback_params[parsed_command["args_count"]]}',
-                    callback_params[parsed_command["args_count"]],
-                )
-            setattr(exc, "param", callback_params[parsed_command["args_count"]])
-            raise exc
 
-        if callback_argspec.varargs is None:
-            ret = await callback(*parsed_command["args"][0 : len(callback_params)])
+        else:
+
+            posargs_length = len(cparams) - len(cdefaults)
+
+            if len(parsed_command["args"]) < posargs_length:
+                raise MissingRequiredArgument(
+                    "missing required argument: "
+                    + cparams[len(parsed_command["args"])],
+                    param=cparams[len(parsed_command["args"])],
+                )
+
+            if (len(parsed_command) - posargs_length) < len(cdefaults):
+                for darg in cdefaults:
+                    parsed_command["args_count"] += 1
+                    parsed_command["args"].insert(parsed_command["args_count"], darg)
+
+        if cargspec.varargs is None:
+            ret = await callback(*parsed_command["args"][: len(cparams)])
         else:
             ret = await callback(
-                *parsed_command["args"][0 : parsed_command["args_count"]]
+                *parsed_command["args"][: parsed_command["args_count"]]
             )
 
     except Exception as exception:
