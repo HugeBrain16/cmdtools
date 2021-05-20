@@ -74,6 +74,9 @@ cmdtools.ProcessCmd(_cmd, test,
 ```
   
 command with error handling example
+
+using callback
+
 ```py
 import cmdtools
 
@@ -91,6 +94,27 @@ cmd = cmdtools.Cmd('/add')
 cmd.parse(eval_args=True)
 
 cmdtools.ProcessCmd(cmd, add, error_add)
+```
+
+or using python error handler
+
+```py
+import cmdtools
+
+def add(num1, num2):
+    print(num1 + num2)
+
+cmd = cmdtools.Cmd('/add')
+cmd.parse(eval_args=True)
+
+try:
+    cmdtools.ProcessCmd(cmd, add)
+except Exception as error:
+    if isinstance(error.exception, cmdtools.MissingRequiredArgument):
+        if error.exception.param == "num1":
+            print('you need to specify the first number')
+        if error.exception.param == "num2":
+            print('you need to specify the second number')
 ```
   
 asynchronous support
