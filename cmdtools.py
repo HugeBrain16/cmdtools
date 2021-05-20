@@ -4,7 +4,7 @@ import re
 import shlex
 import inspect
 
-__version__ = "1.5.2"
+__version__ = "1.6.0"
 
 
 class CmdBaseException(Exception):
@@ -25,6 +25,11 @@ class ParsingError(Exception):
 
 class ProcessError(Exception):
     """raised when error occurred during processing commands without error handler"""
+
+    def __init__(self, message, exception):
+        self.message = message
+        self.exception = exception
+        super().__init__(self.message)
 
 
 class MissingRequiredArgument(CmdBaseException):
