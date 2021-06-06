@@ -20,10 +20,9 @@ import cmdtools
 def ping():
     print("pong.")
 
-_cmd = cmdtools.Cmd('/ping')
-_cmd.parse()
+cmd = cmdtools.Cmd('/ping')
 
-cmdtools.ProcessCmd(_cmd, ping)
+cmd.process_cmd(ping)
 ```
   
 Parse command with arguments
@@ -33,10 +32,9 @@ import cmdtools
 def greet(name):
     print(f"Hello, {name}, nice to meet you")
 
-_cmd = cmdtools.Cmd('/greet "Josh"')
-_cmd.parse()
+cmd = cmdtools.Cmd('/greet "Josh"')
 
-cmdtools.ProcessCmd(_cmd, greet)
+cmd.process_cmd(greet)
 ```
   
 Parsing command with more than one argument and different data types
@@ -46,12 +44,11 @@ import cmdtools
 def give(name, item_name, item_amount):
     print(f"You gave {item_amount} {item_name}s to {name}")
 
-_cmd = cmdtools.Cmd('/give "Josh" "Apple" 10')
-_cmd.parse(eval_args=True) # we're going to use `MatchArgs` function which only supported for `eval` parsed command arguments
+cmd = cmdtools.Cmd('/give "Josh" "Apple" 10', convert_args=True) # convert command arguments into specific datatypes
 
 # check command
-if cmdtools.MatchArgs(_cmd, 'ssi', max_args=3): # format indicates ['str','str','int'], only match 3 arguments
-    cmdtools.ProcessCmd(_cmd, give)
+if cmd.match_args('ssi', max_args=3): # format indicates ['str','str','int'], only match 3 arguments
+    cmd.process_cmd(give)
 else:
     print('Correct Usage: /give <name: [str]> <item-name: [str]> <item-amount: [int]>')
 ```
@@ -63,10 +60,9 @@ import cmdtools
 def test():
     print(test.text)
 
-_cmd = cmdtools.Cmd('/test')
-_cmd.parse()
+cmd = cmdtools.Cmd('/test')
 
-cmdtools.ProcessCmd(_cmd, test,
+cmd.process_cmd(test,
     attrs={ # assign attributes to the callback
         'text': "Hello World"
     }
@@ -90,10 +86,8 @@ def error_add(error):
 def add(num1, num2):
     print(num1 + num2)
 
-cmd = cmdtools.Cmd('/add')
-cmd.parse(eval_args=True)
-
-cmdtools.ProcessCmd(cmd, add, error_add)
+cmd = cmdtools.Cmd('/add', convert_args=True)
+cmd.process_cmd(add, error_add)
 ```
 
 or using python error handler
@@ -105,10 +99,9 @@ def add(num1, num2):
     print(num1 + num2)
 
 cmd = cmdtools.Cmd('/add')
-cmd.parse(eval_args=True)
 
 try:
-    cmdtools.ProcessCmd(cmd, add)
+    cmd.process_cmd(add)
 except Exception as error:
     if isinstance(error.exception, cmdtools.MissingRequiredArgument):
         if error.exception.param == "num1":
@@ -127,9 +120,8 @@ async def _say(text):
 
 async def main():
     cmd = cmdtools.Cmd('/say "Hello World"')
-    cmd.parse()
 
-    await cmdtools.AioProcessCmd(cmd, _say)
+    await cmd.aio_process_cmd(_say)
 
 asyncio.run(main())
 ```
