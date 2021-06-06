@@ -6,7 +6,7 @@ import inspect
 
 __version__ = "1.7.0"
 
-_CVT_FLOAT_PTR = re.compile(r"^[-+]?(\d+[.])\d+$")
+_CVT_FLOAT_PTR = re.compile(r"^[-+]?(\d*[.])\d*$")
 _CVT_INT_PTR = re.compile(r"^[-+]?\d+$")
 
 
