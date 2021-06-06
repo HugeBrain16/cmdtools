@@ -5,37 +5,33 @@ from .. import cmdtools
 class TestProcess(unittest.TestCase):
     def test_process(self):
         cmd = "/sum 10 10 10"
-        cmd = cmdtools.Cmd(cmd)
-        cmd.parse(eval_args=True)
+        cmd = cmdtools.Cmd(cmd, convert_args=True)
 
-        res = cmdtools.ProcessCmd(cmd, TestProcess.sum)
+        res = cmd.process_cmd(TestProcess.sum)
 
         self.assertEqual(res, 30, "boo")
 
     def test_match(self):
         cmd = '/sell "Gold" 50'
-        cmd = cmdtools.Cmd(cmd)
-        cmd.parse(eval_args=True)
+        cmd = cmdtools.Cmd(cmd, convert_args=True)
 
-        match = cmdtools.MatchArgs(cmd, "si")
+        match = cmd.match_args("si")
 
         self.assertTrue(match, "boo")
 
     def test_match_(self):
         cmd = "/add 10 40 20 59"
-        cmd = cmdtools.Cmd(cmd)
-        cmd.parse(eval_args=True)
+        cmd = cmdtools.Cmd(cmd, convert_args=True)
 
-        match = cmdtools.MatchArgs(cmd, ("i" * cmd.args_count))
+        match = cmd.match_args(("i" * len(cmd.args)))
 
         self.assertTrue(match, "boo")
 
     def test_default(self):
         cmd = "/get"
         cmd = cmdtools.Cmd(cmd)
-        cmd.parse()
 
-        res = cmdtools.ProcessCmd(cmd, TestProcess.get)
+        res = cmd.process_cmd(TestProcess.get)
 
         self.assertEqual("Hello World", res)
 

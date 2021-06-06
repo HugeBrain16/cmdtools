@@ -3,9 +3,8 @@ from .. import cmdtools
 
 def test_error():
     cmd = cmdtools.Cmd("/say")
-    cmd.parse()
 
-    cmdtools.ProcessCmd(cmd, say, error_say)
+    cmd.process_cmd(say, error_say)
 
 
 def say(text):
@@ -19,9 +18,8 @@ def error_say(error):
 
 def test_default_error():
     cmd = cmdtools.Cmd("/say")
-    cmd.parse()
 
-    cmdtools.ProcessCmd(cmd, default_say, error_default_say)
+    cmd.process_cmd(default_say, error_default_say)
 
 
 def default_say(text, name="No"):
