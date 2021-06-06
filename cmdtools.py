@@ -4,7 +4,10 @@ import re
 import shlex
 import inspect
 
-__version__ = "1.6.0"
+__version__ = "1.7.0"
+
+_CVT_FLOAT_PTR = re.compile(r"^[-+]?(\d+[.])\d+$")
+_CVT_INT_PTR = re.compile(r"^[-+]?\d+$")
 
 
 class CmdBaseException(Exception):
@@ -41,68 +44,23 @@ class MissingRequiredArgument(CmdBaseException):
         super().__init__(self.message)
 
 
-def _get_args_type_char(parsed_command, max_args=0):
-    """get command arguments data types in char format"""
-    argtype = list()
-
-    if max_args == 0:
-        for arg in parsed_command["args"][0 : parsed_command["args_count"]]:
-            if not arg:
-                continue
-
-            argtype.append(type(arg).__name__[0])  # get type char
-    else:
-        for arg in parsed_command["args"][0:max_args]:
-            if not arg:
-                continue
-
-            argtype.append(type(arg).__name__[0])  # get type char
-
-    return argtype
-
-
-def _eval_cmd(parsed_command):
-    """evaluate literal arguments"""
-    if type(parsed_command).__name__ != "dict":
-        return None
-
-    eval_codes = [(r"^[-+]?(\d*[.])\d*$", float), (r"^[-+]?\d+$", int)]
-
-    for i in range(len(parsed_command["args"])):
-        if not parsed_command["args"][i]:
-            break  # empty args
-
-        for eval_code in eval_codes:
-            res = re.match(eval_code[0], parsed_command["args"][i])
-
-            if res:
-                parsed_command["args"][i] = eval_code[1](parsed_command["args"][i])
-                break  # has found the correct data type
-
-    return parsed_command
-
-
 class Cmd:
     """main class for parsing commands"""
 
-    def __init__(self, command_string, prefix="/", max_args=0):
+    def __init__(self, command_string, prefix="/", max_args=0, convert_args=False):
         self.parsed_command = None
         self.name = None
         self.args = []
         self.args_count = len(self.args)
         self.command_string = command_string
+        self.convert_args = convert_args
         self.prefix = prefix
         self.max_args = max_args
 
-    def get_dict(self):
-        """return parsed command"""
-        return self.parsed_command
-
-    def parse(self, eval_args=False):
-        """parse string commands, returns command name and arguments"""
-        res = re.findall(rf"^{self.prefix}(.*)", self.command_string)
-        argres = shlex.split("".join(res))
-        argsc = len(argres[1:])
+        # parse command
+        res = re.match(rf"^{self.prefix}(?P<args>.*)", self.command_string)
+        argres = shlex.split("".join(res.group("args")))
+        argsc = len(argres)
 
         if self.max_args == 0:
             self.max_args = argsc
@@ -114,16 +72,186 @@ class Cmd:
             argres.insert(i, "")
 
         if argres:
-            cmd = {"name": argres[0], "args": argres[1:], "args_count": argsc}
+            self.parsed_command = {
+                "name": argres[0],
+                "args": argres[1:],
+                "args_count": argsc,
+            }
 
-            if eval_args:
-                self.parsed_command = _eval_cmd(cmd)  # only returns if command is valid
-            else:
-                self.parsed_command = cmd
+            if convert_args:
+                self._cvt_cmd()
 
             self.name = self.parsed_command["name"]
             self.args = self.parsed_command["args"]
             self.args_count = self.parsed_command["args_count"]
+
+    def get_dict(self):
+        """return parsed command"""
+        return self.parsed_command
+
+    def _get_args_type_char(self, max_args=0):
+        """get command arguments data types in char format"""
+        argtype = list()
+
+        if max_args == 0:
+            for arg in self.parsed_command["args"][
+                0 : self.parsed_command["args_count"]
+            ]:
+                if not arg:
+                    continue
+
+                argtype.append(type(arg).__name__[0])  # get type char
+        else:
+            for arg in self.parsed_command["args"][0:max_args]:
+                if not arg:
+                    continue
+
+                argtype.append(type(arg).__name__[0])  # get type char
+
+        return argtype
+
+    def _cvt_cmd(self):
+        """evaluate literal arguments"""
+        cvt = [(_CVT_FLOAT_PTR, float), (_CVT_INT_PTR, int)]
+
+        for i in range(len(self.parsed_command["args"])):
+            if not self.parsed_command["args"][i]:
+                break  # empty args
+
+            for cvt_ in cvt:
+                res = cvt_[0].match(self.parsed_command["args"][i])
+
+                if res:
+                    self.parsed_command["args"][i] = cvt_[1](
+                        self.parsed_command["args"][i]
+                    )
+                    break  # has found the correct data type
+
+    def match_args(self, format_match, max_args=0):
+        """match argument formats, only works with converted arguments"""
+
+        # format example: 'ssf', arguments: ['hell','o',10.0] matched
+
+        if max_args <= 0 and self.max_args > -1:
+            max_args = self.max_args
+
+        if not format_match:
+            raise ValueError("no format specified")
+
+        format_match = format_match.replace(" ", "")
+        format_match = list(format_match)
+
+        argtype = self._get_args_type_char(max_args)
+
+        if len(format_match) != len(argtype):
+            raise ValueError("format length is not the same as the arguments length")
+
+        return self._match_args(argtype, format_match)
+
+    def _match_args(self, argtype, format_match):
+        """match arguments by arguments data types"""
+        matched = 0
+        for i, arg_type in enumerate(argtype):
+            arg_len = len(str(self.parsed_command["args"][i]))
+            if arg_type in ("i", "f"):
+                if format_match[i] == "s":
+                    matched += 1  # allow int or float as 's' format
+                elif format_match[i] == "c" and arg_len == 1 and arg_type == "i":
+                    matched += 1  # and char if only a digit for int
+                elif arg_type == format_match[i]:
+                    matched += 1
+            elif arg_type == "s":
+                if format_match[i] == "c" and arg_len == 1:
+                    matched += 1
+                elif arg_type == format_match[i]:
+                    matched += 1
+
+        if matched == len(format_match):
+            return True
+
+        return False
+
+    def process_cmd(self, callback, error_handler_callback=None, attrs=None):
+        """process command..."""
+        if attrs is None:
+            attrs = {}
+
+        if type(callback).__name__ != "function":
+            raise TypeError("callback is not a function")
+        if (
+            error_handler_callback
+            and type(error_handler_callback).__name__ != "function"
+        ):
+            raise TypeError("error handler callback is not a function")
+
+        if not isinstance(attrs, dict):
+            raise TypeError("attributes must be in dict object")
+
+        for attr in attrs:
+            setattr(callback, attr, attrs[attr])
+
+        if error_handler_callback is not None:
+            for attr in attrs:
+                setattr(error_handler_callback, attr, attrs[attr])
+
+        ret = None
+        try:
+            cargspec = inspect.getfullargspec(callback)
+            cparams = cargspec.args
+            cdefaults = cargspec.defaults
+
+            if cdefaults is None:
+                if len(self.parsed_command["args"]) < len(cparams):
+                    raise MissingRequiredArgument(
+                        "missing required argument: "
+                        + cparams[len(self.parsed_command["args"])],
+                        param=cparams[len(self.parsed_command["args"])],
+                    )
+
+            else:
+
+                posargs_length = len(cparams) - len(cdefaults)
+
+                if len(self.parsed_command["args"]) < posargs_length:
+                    raise MissingRequiredArgument(
+                        "missing required argument: "
+                        + cparams[len(self.parsed_command["args"])],
+                        param=cparams[len(self.parsed_command["args"])],
+                    )
+
+                if (len(self.parsed_command) - posargs_length) < len(cdefaults):
+                    for darg in cdefaults:
+                        self.parsed_command["args_count"] += 1
+                        self.parsed_command["args"].insert(
+                            self.parsed_command["args_count"], darg
+                        )
+
+            if cargspec.varargs is None:
+                ret = callback(*self.parsed_command["args"][: len(cparams)])
+            else:
+                ret = callback(
+                    *self.parsed_command["args"][: self.parsed_command["args_count"]]
+                )
+
+        except Exception as exception:
+            if error_handler_callback is None:
+                raise ProcessError(
+                    "an error occurred during processing callback '"
+                    + f"{callback.__name__}()' for command '{self.parsed_command['name']}, "
+                    + "no error handler callback specified, exception: ",
+                    exception,
+                ) from exception
+
+            error_handler_callback(error=exception)
+
+        for attr in attrs:
+            delattr(callback, attr)
+
+        if error_handler_callback is not None:
+            for attr in attrs:
+                delattr(error_handler_callback, attr)
+
+        return ret
 
     def __str__(self):
         message = (
@@ -135,239 +263,84 @@ class Cmd:
 
         return message
 
+    async def aio_process_cmd(self, callback, error_handler_callback=None, attrs=None):
+        """coroutine process cmd"""
+        if attrs is None:
+            attrs = {}
 
-def _match_args(parsed_command, argtype, format_match):
-    """match arguments by arguments data types"""
-    matched = 0
-    for i, arg_type in enumerate(argtype):
-        arg_len = len(str(parsed_command["args"][i]))
-        if arg_type in ("i", "f"):
-            if format_match[i] == "s":
-                matched += 1  # allow int or float as 's' format
-            elif format_match[i] == "c" and arg_len == 1 and arg_type == "i":
-                matched += 1  # and char if only a digit for int
-            elif arg_type == format_match[i]:
-                matched += 1
-        elif arg_type == "s":
-            if format_match[i] == "c" and arg_len == 1:
-                matched += 1
-            elif arg_type == format_match[i]:
-                matched += 1
+        if type(callback).__name__ != "function":
+            raise TypeError("callback is not a function")
+        if (
+            error_handler_callback
+            and type(error_handler_callback).__name__ != "function"
+        ):
+            raise TypeError("error handler callback is not a function")
 
-    if matched == len(format_match):
-        return True
+        if not isinstance(attrs, dict):
+            raise TypeError("attributes must be in dict object")
 
-    return False
+        for attr in attrs:
+            setattr(callback, attr, attrs[attr])
 
+        if error_handler_callback is not None:
+            for attr in attrs:
+                setattr(error_handler_callback, attr, attrs[attr])
 
-def MatchArgs(parsed_command_object, format_match, max_args=0):
-    """match argument formats, only works with eval"""
+        ret = None
+        try:
+            cargspec = inspect.getfullargspec(callback)
+            cparams = cargspec.args
+            cdefaults = cargspec.defaults
 
-    # format example: 'ssf', arguments: ['hell','o',10.0] matched
+            if cdefaults is None:
+                if len(self.parsed_command["args"]) < len(cparams):
+                    raise MissingRequiredArgument(
+                        "missing required argument: "
+                        + cparams[len(self.parsed_command["args"])],
+                        param=cparams[len(self.parsed_command["args"])],
+                    )
 
-    parsed_command = getattr(parsed_command_object, "parsed_command", None)
-    obj_max_args = getattr(parsed_command_object, "max_args", 0)
+            else:
 
-    if max_args <= 0 and obj_max_args > -1:
-        max_args = obj_max_args
+                posargs_length = len(cparams) - len(cdefaults)
 
-    if parsed_command is None:
-        raise TypeError("Command object appear to be not parsed")
+                if len(self.parsed_command["args"]) < posargs_length:
+                    raise MissingRequiredArgument(
+                        "missing required argument: "
+                        + cparams[len(self.parsed_command["args"])],
+                        param=cparams[len(self.parsed_command["args"])],
+                    )
 
-    if not format_match:
-        raise ValueError("no format specified")
+                if (len(parsed_command) - posargs_length) < len(cdefaults):
+                    for darg in cdefaults:
+                        self.parsed_command["args_count"] += 1
+                        self.parsed_command["args"].insert(
+                            self.parsed_command["args_count"], darg
+                        )
 
-    format_match = format_match.replace(" ", "")
-    format_match = list(format_match)
-
-    argtype = _get_args_type_char(parsed_command, max_args)
-
-    if len(format_match) != len(argtype):
-        raise ValueError("format length is not the same as the arguments length")
-
-    return _match_args(parsed_command, argtype, format_match)
-
-
-def _process_callback(parsed_command, callback, error_handler_callback):
-    ret = None
-    try:
-        cargspec = inspect.getfullargspec(callback)
-        cparams = cargspec.args
-        cdefaults = cargspec.defaults
-
-        if cdefaults is None:
-            if len(parsed_command["args"]) < len(cparams):
-                raise MissingRequiredArgument(
-                    "missing required argument: "
-                    + cparams[len(parsed_command["args"])],
-                    param=cparams[len(parsed_command["args"])],
+            if cargspec.varargs is None:
+                ret = await callback(*self.parsed_command["args"][: len(cparams)])
+            else:
+                ret = await callback(
+                    *self.parsed_command["args"][: self.parsed_command["args_count"]]
                 )
 
-        else:
+        except Exception as exception:
+            if error_handler_callback is None:
+                raise ProcessError(
+                    "an error occurred during processing callback '"
+                    + f"{callback.__name__}()' for command '{self.parsed_command['name']}, "
+                    + "no error handler callback specified, exception: ",
+                    exception,
+                ) from exception
 
-            posargs_length = len(cparams) - len(cdefaults)
+            error_handler_callback(error=exception)
 
-            if len(parsed_command["args"]) < posargs_length:
-                raise MissingRequiredArgument(
-                    "missing required argument: "
-                    + cparams[len(parsed_command["args"])],
-                    param=cparams[len(parsed_command["args"])],
-                )
-
-            if (len(parsed_command) - posargs_length) < len(cdefaults):
-                for darg in cdefaults:
-                    parsed_command["args_count"] += 1
-                    parsed_command["args"].insert(parsed_command["args_count"], darg)
-
-        if cargspec.varargs is None:
-            ret = callback(*parsed_command["args"][: len(cparams)])
-        else:
-            ret = callback(*parsed_command["args"][: parsed_command["args_count"]])
-
-    except Exception as exception:
-        if error_handler_callback is None:
-            raise ProcessError(
-                "an error occurred during processing callback '"
-                + f"{callback.__name__}()' for command '{parsed_command['name']}, "
-                + "no error handler callback specified, exception: ",
-                exception,
-            ) from exception
-
-        error_handler_callback(error=exception)
-
-    return ret
-
-
-async def coro_process_callback(parsed_command, callback, error_handler_callback):
-    """process callback for coroutine"""
-    ret = None
-    try:
-        cargspec = inspect.getfullargspec(callback)
-        cparams = cargspec.args
-        cdefaults = cargspec.defaults
-
-        if cdefaults is None:
-            if len(parsed_command["args"]) < len(cparams):
-                raise MissingRequiredArgument(
-                    "missing required argument: "
-                    + cparams[len(parsed_command["args"])],
-                    param=cparams[len(parsed_command["args"])],
-                )
-
-        else:
-
-            posargs_length = len(cparams) - len(cdefaults)
-
-            if len(parsed_command["args"]) < posargs_length:
-                raise MissingRequiredArgument(
-                    "missing required argument: "
-                    + cparams[len(parsed_command["args"])],
-                    param=cparams[len(parsed_command["args"])],
-                )
-
-            if (len(parsed_command) - posargs_length) < len(cdefaults):
-                for darg in cdefaults:
-                    parsed_command["args_count"] += 1
-                    parsed_command["args"].insert(parsed_command["args_count"], darg)
-
-        if cargspec.varargs is None:
-            ret = await callback(*parsed_command["args"][: len(cparams)])
-        else:
-            ret = await callback(
-                *parsed_command["args"][: parsed_command["args_count"]]
-            )
-
-    except Exception as exception:
-        if error_handler_callback is None:
-            raise ProcessError(
-                "an error occurred during processing callback '"
-                + f"{callback.__name__}()' for command '{parsed_command['name']}, "
-                + "no error handler callback specified, exception: ",
-                exception,
-            ) from exception
-
-        await error_handler_callback(error=exception)
-
-    return ret
-
-
-def ProcessCmd(
-    parsed_command_object, callback, error_handler_callback=None, attrs=None
-):
-    """process command, to tell which function for processing the command, i guess..."""
-
-    parsed_command = getattr(parsed_command_object, "parsed_command", None)
-
-    if parsed_command is None:
-        raise TypeError("Command object appear to be not parsed")
-    if attrs is None:
-        attrs = {}
-
-    if type(parsed_command).__name__ != "dict":
-        raise TypeError("parsed_command must be a dict of parsed command")
-    if type(callback).__name__ != "function":
-        raise TypeError("callback is not a function")
-    if error_handler_callback and type(error_handler_callback).__name__ != "function":
-        raise TypeError("error handler callback is not a function")
-
-    if not isinstance(attrs, dict):
-        raise TypeError("attributes must be in dict object")
-
-    for attr in attrs:
-        setattr(callback, attr, attrs[attr])
-
-    if error_handler_callback is not None:
         for attr in attrs:
-            setattr(error_handler_callback, attr, attrs[attr])
+            delattr(callback, attr)
 
-    ret = _process_callback(parsed_command, callback, error_handler_callback)
+        if error_handler_callback is not None:
+            for attr in attrs:
+                delattr(error_handler_callback, attr)
 
-    for attr in attrs:
-        delattr(callback, attr)
-
-    if error_handler_callback is not None:
-        for attr in attrs:
-            delattr(error_handler_callback, attr)
-
-    return ret
-
-
-async def AioProcessCmd(
-    parsed_command_object, callback, error_handler_callback=None, attrs=None
-):
-    """coroutine process cmd"""
-
-    parsed_command = getattr(parsed_command_object, "parsed_command", None)
-
-    if parsed_command is None:
-        raise TypeError("Command object appear to be not parsed")
-    if attrs is None:
-        attrs = {}
-
-    if type(parsed_command).__name__ != "dict":
-        raise TypeError("parsed_command must be a dict of parsed command")
-    if type(callback).__name__ != "function":
-        raise TypeError("callback is not a function")
-    if error_handler_callback and type(error_handler_callback).__name__ != "function":
-        raise TypeError("error handler callback is not a function")
-
-    if not isinstance(attrs, dict):
-        raise TypeError("attributes must be in dict object")
-
-    for attr in attrs:
-        setattr(callback, attr, attrs[attr])
-
-    if error_handler_callback is not None:
-        for attr in attrs:
-            setattr(error_handler_callback, attr, attrs[attr])
-
-    ret = await coro_process_callback(parsed_command, callback, error_handler_callback)
-
-    for attr in attrs:
-        delattr(callback, attr)
-
-    if error_handler_callback is not None:
-        for attr in attrs:
-            delattr(error_handler_callback, attr)
-
-    return ret
+        return ret
