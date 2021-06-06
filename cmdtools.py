@@ -311,7 +311,7 @@ class Cmd:
                         param=cparams[len(self.parsed_command["args"])],
                     )
 
-                if (len(parsed_command) - posargs_length) < len(cdefaults):
+                if (len(self.parsed_command) - posargs_length) < len(cdefaults):
                     for darg in cdefaults:
                         self.parsed_command["args_count"] += 1
                         self.parsed_command["args"].insert(
