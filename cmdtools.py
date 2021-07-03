@@ -4,7 +4,7 @@ import re
 import shlex
 import inspect
 
-__version__ = "1.7.0"
+__version__ = "2.0.0"
 
 _CVT_FLOAT_PTR = re.compile(r"^[-+]?(\d*[.])\d*$")
 _CVT_INT_PTR = re.compile(r"^[-+]?\d+$")
@@ -59,7 +59,9 @@ class Cmd:
 
         # parse command
         res = re.match(rf"^{self.prefix}(?P<args>.*)", self.command_string)
-        argres = shlex.split("".join(res.group("args")))
+        argres = []
+        if res is not None:
+            argres = shlex.split("".join(res.group("args")))
         argsc = len(argres)
 
         if self.max_args == 0:
