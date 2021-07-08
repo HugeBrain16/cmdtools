@@ -4,7 +4,7 @@ import re
 import shlex
 import inspect
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 _CVT_FLOAT_PTR = re.compile(r"^[-+]?(\d*[.])\d*$")
 _CVT_INT_PTR = re.compile(r"^[-+]?\d+$")
@@ -336,7 +336,7 @@ class Cmd:
                     exception,
                 ) from exception
 
-            error_handler_callback(error=exception)
+            await error_handler_callback(error=exception)
 
         for attr in attrs:
             delattr(callback, attr)
