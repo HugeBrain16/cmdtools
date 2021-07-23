@@ -4,7 +4,7 @@ import re
 import shlex
 import inspect
 
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 
 _CVT_FLOAT_PTR = re.compile(r"^[-+]?(\d*[.])\d*$")
 _CVT_INT_PTR = re.compile(r"^[-+]?\d+$")
@@ -178,11 +178,15 @@ class Cmd:
         if attrs is None:
             attrs = {}
 
-        if type(callback).__name__ != "function":
-            raise TypeError("callback is not a function")
+        if (
+            inspect.isfunction(callback) is False
+            and inspect.ismethod(callback) is False
+        ):
+            raise TypeError("callback is not a function or method")
         if (
             error_handler_callback
-            and type(error_handler_callback).__name__ != "function"
+            and inspect.isfunction(error_handler_callback) is False
+            and inspect.ismethod(callback) is False
         ):
             raise TypeError("error handler callback is not a function")
 
@@ -201,6 +205,11 @@ class Cmd:
             cargspec = inspect.getfullargspec(callback)
             cparams = cargspec.args
             cdefaults = cargspec.defaults
+
+            # remove 'self' or 'cls' from parameters if method
+            if inspect.ismethod(callback):
+                if len(cparams) > 0:
+                    cparams = cparams[1:]
 
             if cdefaults is None:
                 if len(self.parsed_command["args"]) < len(cparams):
@@ -270,13 +279,15 @@ class Cmd:
         if attrs is None:
             attrs = {}
 
-        if type(callback).__name__ != "function":
-            raise TypeError("callback is not a function")
+        if inspect.iscoroutinefunction(callback) is False:
+            raise TypeError("callback is not a coroutine function")
         if (
             error_handler_callback
-            and type(error_handler_callback).__name__ != "function"
+            and inspect.iscoroutinefunction(error_handler_callback) is False
         ):
-            raise TypeError("error handler callback is not a function")
+            raise TypeError(
+                "error handler callback is not a coroutine function function"
+            )
 
         if not isinstance(attrs, dict):
             raise TypeError("attributes must be in dict object")
@@ -293,6 +304,11 @@ class Cmd:
             cargspec = inspect.getfullargspec(callback)
             cparams = cargspec.args
             cdefaults = cargspec.defaults
+
+            # remove 'self' or 'cls' from parameters if method
+            if inspect.ismethod(callback):
+                if len(cparams) > 0:
+                    cparams = cparams[1:]
 
             if cdefaults is None:
                 if len(self.parsed_command["args"]) < len(cparams):
