@@ -29,7 +29,6 @@ Class:
 """
 
 import os
-import asyncio
 import inspect
 import logging
 import importlib
@@ -116,7 +115,7 @@ class CommandRunner:
     def __init__(self, command: CommandObject):
         self.command = command
 
-    def run(self, cmd: cmdtools.Cmd, attrs: dict = None):
+    async def run(self, cmd: cmdtools.Cmd, attrs: dict = None):
         """run command from parsed command object"""
 
         if not isinstance(cmd, cmdtools.Cmd):
@@ -137,7 +136,7 @@ class CommandRunner:
                 args.append(self.command.error_callback)
 
             if self.command.is_coroutine():
-                return asyncio.run(cmd.aio_process_cmd(*args, attrs=attrs))
+                return await cmd.aio_process_cmd(*args, attrs=attrs)
 
             return cmd.process_cmd(*args, attrs=attrs)
 
@@ -150,7 +149,7 @@ class CommandRunnerContainer:
     def __init__(self, commands: list):
         self.commands = commands
 
-    def run(self, cmd: cmdtools.Cmd, attrs: dict = None):
+    async def run(self, cmd: cmdtools.Cmd, attrs: dict = None):
         """run command from parsed command object"""
 
         if not isinstance(cmd, cmdtools.Cmd):
@@ -172,7 +171,7 @@ class CommandRunnerContainer:
                     args.append(command.error_callback)
 
                 if command.is_coroutine():
-                    return asyncio.run(cmd.aio_process_cmd(*args, attrs=attrs))
+                    return await cmd.aio_process_cmd(*args, attrs=attrs)
 
                 return cmd.process_cmd(*args, attrs=attrs)
 
