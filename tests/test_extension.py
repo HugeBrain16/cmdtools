@@ -1,3 +1,4 @@
+import asyncio
 from .. import cmdtools
 from ..cmdtools.ext import command
 
@@ -10,11 +11,14 @@ class Add(command.Command):
 	def add(self, n1, n2):
 		self.result = n1 + n2
 
-def test_class_cmd():
+async def _test_class_cmd():
 	runner = command.CommandRunner(Add())
-	runner.run(
+	await runner.run(
 		cmdtools.Cmd("/add 40 40", convert_args=True)
 	)
 
 	assert runner.command.result == 80
 	assert runner.command.name == "add"
+
+def test_class_cmd_run():
+	asyncio.run(_test_class_cmd())
