@@ -234,7 +234,8 @@ class CommandDir(CommandRunnerContainer):
         if search_tree:
             for root in os.walk(self.rootdir):
                 dirs.append(root[0])
-        else:
+
+        if self.rootdir not in dirs:
             dirs.append(self.rootdir)
 
         for path in dirs:
