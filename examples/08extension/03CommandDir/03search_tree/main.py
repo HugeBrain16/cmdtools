@@ -1,7 +1,11 @@
+import asyncio
 import cmdtools
 from cmdtools.ext import command
 
-runner = command.CommandDir("commands", search_tree=True)
-runner.run(
-	cmdtools.Cmd("/greet")
-)
+async def main():
+	runner = command.CommandDir("commands", search_tree=True)
+	await runner.run(
+		cmdtools.Cmd("/greet")
+	)
+
+asyncio.run(main())

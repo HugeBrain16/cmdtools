@@ -1,7 +1,11 @@
+import asyncio
 import cmdtools
 from cmdtools.ext import command
 
-runner = command.CommandDir("commands")
-runner.run(
-	cmdtools.Cmd("/ping")
-)
+async def main():
+	runner = command.CommandDir("commands")
+	await runner.run(
+		cmdtools.Cmd("/ping")
+	)
+
+asyncio.run(main())
