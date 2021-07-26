@@ -201,17 +201,19 @@ class Cmd:
         else:
             for attr in attrs:
                 if hasattr(callback.__self__, attr):
-                    cdefattr.update({attr: getattr(callback, attr)})
+                    cdefattr.update({attr: getattr(callback.__self__, attr)})
 
         if error_handler_callback is not None:
             if not inspect.ismethod(error_handler_callback):
                 for attr in attrs:
-                    cedefattr.update({attr: getattr(error_handler_callback, attr)})
+                    if hasattr(error_handler_callback, attr):
+                        cedefattr.update({attr: getattr(error_handler_callback, attr)})
             else:
                 for attr in attrs:
-                    cedefattr.update(
-                        {attr: getattr(error_handler_callback.__self__, attr)}
-                    )
+                    if hasattr(error_handler_callback.__self__, attr):
+                        cedefattr.update(
+                            {attr: getattr(error_handler_callback.__self__, attr)}
+                        )
 
         if not inspect.ismethod(callback):
             for attr in attrs:
@@ -356,17 +358,19 @@ class Cmd:
         else:
             for attr in attrs:
                 if hasattr(callback.__self__, attr):
-                    cdefattr.update({attr: getattr(callback, attr)})
+                    cdefattr.update({attr: getattr(callback.__self__, attr)})
 
         if error_handler_callback is not None:
             if not inspect.ismethod(error_handler_callback):
                 for attr in attrs:
-                    cedefattr.update({attr: getattr(error_handler_callback, attr)})
+                    if hasattr(error_handler_callback, attr):
+                        cedefattr.update({attr: getattr(error_handler_callback, attr)})
             else:
                 for attr in attrs:
-                    cedefattr.update(
-                        {attr: getattr(error_handler_callback.__self__, attr)}
-                    )
+                    if hasattr(error_handler_callback.__self__, attr):
+                        cedefattr.update(
+                            {attr: getattr(error_handler_callback.__self__, attr)}
+                        )
 
         if not inspect.ismethod(callback):
             for attr in attrs:
