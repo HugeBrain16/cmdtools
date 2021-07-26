@@ -311,10 +311,10 @@ class Cmd:
 
         if not inspect.ismethod(error_handler_callback):
             for attr in cedefattr:
-                setattr(error_handler_callback, attr, cdefattr[attr])
+                setattr(error_handler_callback, attr, cedefattr[attr])
         else:
             for attr in cedefattr:
-                setattr(error_handler_callback.__self__, attr, cdefattr[attr])
+                setattr(error_handler_callback.__self__, attr, cedefattr[attr])
 
         return ret
 
@@ -466,9 +466,9 @@ class Cmd:
 
         if not inspect.ismethod(error_handler_callback):
             for attr in cedefattr:
-                setattr(error_handler_callback, attr, cdefattr[attr])
+                setattr(error_handler_callback, attr, cedefattr[attr])
         else:
             for attr in cedefattr:
-                setattr(error_handler_callback.__self__, attr, cdefattr[attr])
+                setattr(error_handler_callback.__self__, attr, cedefattr[attr])
 
         return ret
