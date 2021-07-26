@@ -202,7 +202,7 @@ class CommandModule(CommandRunnerContainer):
                 for obj in dir(module):
                     obj_ = getattr(module, obj, None)
 
-                    if inspect.isclass(obj_):
+                    if inspect.isclass(obj_) and obj_.__module__ == module.__name__:
                         if isinstance(obj_(), CommandObject):
                             cobj = obj_()
 
@@ -257,7 +257,7 @@ class CommandDir(CommandRunnerContainer):
                         for obj in dir(module):
                             obj_ = getattr(module, obj, None)
 
-                            if inspect.isclass(obj_):
+                            if inspect.isclass(obj_) and obj_.__module__ == module.__name__:
                                 if isinstance(obj_(), CommandObject):
                                     cobj = obj_()
 
