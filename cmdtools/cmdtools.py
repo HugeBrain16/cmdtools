@@ -191,6 +191,28 @@ class Cmd:
         if not isinstance(attrs, dict):
             raise TypeError("attributes must be in dict object")
 
+        cdefattr = {}
+        cedefattr = {}
+
+        if not inspect.ismethod(callback):
+            for attr in attrs:
+                if hasattr(callback, attr):
+                    cdefattr.update({attr: getattr(callback, attr)})
+        else:
+            for attr in attrs:
+                if hasattr(callback.__self__, attr):
+                    cdefattr.update({attr: getattr(callback, attr)})
+
+        if error_handler_callback is not None:
+            if not inspect.ismethod(error_handler_callback):
+                for attr in attrs:
+                    cedefattr.update({attr: getattr(error_handler_callback, attr)})
+            else:
+                for attr in attrs:
+                    cedefattr.update(
+                        {attr: getattr(error_handler_callback.__self__, attr)}
+                    )
+
         if not inspect.ismethod(callback):
             for attr in attrs:
                 setattr(callback, attr, attrs[attr])
@@ -263,18 +285,36 @@ class Cmd:
 
         if not inspect.ismethod(callback):
             for attr in attrs:
-                delattr(callback, attr)
+                if hasattr(callback, attr):
+                    delattr(callback, attr)
         else:
             for attr in attrs:
-                delattr(callback.__self__, attr)
+                if hasattr(callback.__self__, attr):
+                    delattr(callback.__self__, attr)
 
         if error_handler_callback is not None:
             if not inspect.ismethod(error_handler_callback):
                 for attr in attrs:
-                    delattr(error_handler_callback, attr)
+                    if hasattr(error_handler_callback, attr):
+                        delattr(error_handler_callback, attr)
             else:
                 for attr in attrs:
-                    delattr(error_handler_callback.__self__, attr)
+                    if hasattr(error_handler_callback.__self__, attr):
+                        delattr(error_handler_callback.__self__, attr)
+
+        if not inspect.ismethod(callback):
+            for attr in cdefattr:
+                setattr(callback, attr, cdefattr[attr])
+        else:
+            for attr in cdefattr:
+                setattr(callback.__self__, attr, cdefattr[attr])
+
+        if not inspect.ismethod(error_handler_callback):
+            for attr in cedefattr:
+                setattr(error_handler_callback, attr, cdefattr[attr])
+        else:
+            for attr in cedefattr:
+                setattr(error_handler_callback.__self__, attr, cdefattr[attr])
 
         return ret
 
@@ -305,6 +345,28 @@ class Cmd:
 
         if not isinstance(attrs, dict):
             raise TypeError("attributes must be in dict object")
+
+        cdefattr = {}
+        cedefattr = {}
+
+        if not inspect.ismethod(callback):
+            for attr in attrs:
+                if hasattr(callback, attr):
+                    cdefattr.update({attr: getattr(callback, attr)})
+        else:
+            for attr in attrs:
+                if hasattr(callback.__self__, attr):
+                    cdefattr.update({attr: getattr(callback, attr)})
+
+        if error_handler_callback is not None:
+            if not inspect.ismethod(error_handler_callback):
+                for attr in attrs:
+                    cedefattr.update({attr: getattr(error_handler_callback, attr)})
+            else:
+                for attr in attrs:
+                    cedefattr.update(
+                        {attr: getattr(error_handler_callback.__self__, attr)}
+                    )
 
         if not inspect.ismethod(callback):
             for attr in attrs:
@@ -378,17 +440,35 @@ class Cmd:
 
         if not inspect.ismethod(callback):
             for attr in attrs:
-                delattr(callback, attr)
+                if hasattr(callback, attr):
+                    delattr(callback, attr)
         else:
             for attr in attrs:
-                delattr(callback.__self__, attr)
+                if hasattr(callback.__self__, attr):
+                    delattr(callback.__self__, attr)
 
         if error_handler_callback is not None:
             if not inspect.ismethod(error_handler_callback):
                 for attr in attrs:
-                    delattr(error_handler_callback, attr)
+                    if hasattr(error_handler_callback, attr):
+                        delattr(error_handler_callback, attr)
             else:
                 for attr in attrs:
-                    delattr(error_handler_callback.__self__, attr)
+                    if hasattr(error_handler_callback.__self__, attr):
+                        delattr(error_handler_callback.__self__, attr)
+
+        if not inspect.ismethod(callback):
+            for attr in cdefattr:
+                setattr(callback, attr, cdefattr[attr])
+        else:
+            for attr in cdefattr:
+                setattr(callback.__self__, attr, cdefattr[attr])
+
+        if not inspect.ismethod(error_handler_callback):
+            for attr in cedefattr:
+                setattr(error_handler_callback, attr, cdefattr[attr])
+        else:
+            for attr in cedefattr:
+                setattr(error_handler_callback.__self__, attr, cdefattr[attr])
 
         return ret
