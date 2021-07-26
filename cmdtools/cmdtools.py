@@ -191,12 +191,20 @@ class Cmd:
         if not isinstance(attrs, dict):
             raise TypeError("attributes must be in dict object")
 
-        for attr in attrs:
-            setattr(callback, attr, attrs[attr])
+        if not inspect.ismethod(callback):
+            for attr in attrs:
+                setattr(callback, attr, attrs[attr])
+        else:
+            for attr in attrs:
+                setattr(callback.__self__, attr, attrs[attr])
 
         if error_handler_callback is not None:
-            for attr in attrs:
-                setattr(error_handler_callback, attr, attrs[attr])
+            if not inspect.ismethod(error_handler_callback):
+                for attr in attrs:
+                    setattr(error_handler_callback, attr, attrs[attr])
+            else:
+                for attr in attrs:
+                    setattr(error_handler_callback.__self__, attr, attrs[attr])
 
         ret = None
         try:
@@ -253,12 +261,20 @@ class Cmd:
 
             error_handler_callback(error=exception)
 
-        for attr in attrs:
-            delattr(callback, attr)
+        if not inspect.ismethod(callback):
+            for attr in attrs:
+                delattr(callback, attr)
+        else:
+            for attr in attrs:
+                delattr(callback.__self__, attr)
 
         if error_handler_callback is not None:
-            for attr in attrs:
-                delattr(error_handler_callback, attr)
+            if not inspect.ismethod(error_handler_callback):
+                for attr in attrs:
+                    delattr(error_handler_callback, attr)
+            else:
+                for attr in attrs:
+                    delattr(error_handler_callback.__self__, attr)
 
         return ret
 
@@ -290,12 +306,20 @@ class Cmd:
         if not isinstance(attrs, dict):
             raise TypeError("attributes must be in dict object")
 
-        for attr in attrs:
-            setattr(callback, attr, attrs[attr])
+        if not inspect.ismethod(callback):
+            for attr in attrs:
+                setattr(callback, attr, attrs[attr])
+        else:
+            for attr in attrs:
+                setattr(callback.__self__, attr, attrs[attr])
 
         if error_handler_callback is not None:
-            for attr in attrs:
-                setattr(error_handler_callback, attr, attrs[attr])
+            if not inspect.ismethod(error_handler_callback):
+                for attr in attrs:
+                    setattr(error_handler_callback, attr, attrs[attr])
+            else:
+                for attr in attrs:
+                    setattr(error_handler_callback.__self__, attr, attrs[attr])
 
         ret = None
         try:
@@ -352,11 +376,19 @@ class Cmd:
 
             await error_handler_callback(error=exception)
 
-        for attr in attrs:
-            delattr(callback, attr)
+        if not inspect.ismethod(callback):
+            for attr in attrs:
+                delattr(callback, attr)
+        else:
+            for attr in attrs:
+                delattr(callback.__self__, attr)
 
         if error_handler_callback is not None:
-            for attr in attrs:
-                delattr(error_handler_callback, attr)
+            if not inspect.ismethod(error_handler_callback):
+                for attr in attrs:
+                    delattr(error_handler_callback, attr)
+            else:
+                for attr in attrs:
+                    delattr(error_handler_callback.__self__, attr)
 
         return ret
