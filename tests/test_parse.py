@@ -16,3 +16,12 @@ class TestParse(unittest.TestCase):
 
         self.assertIsInstance(cmd.args[0], int, "boo")
         self.assertIsInstance(sum(cmd.args[1:]), float, "boo")
+
+    def test_prefix_parser(self):
+        cmd0 = cmdtools.Parser("!ping", "!")
+        cmd1 = cmdtools.Parser("b!ping", "b!")
+        cmd2 = cmdtools.Parser("zu ping", "zu")
+
+        self.assertEqual(cmd0.args, "ping")
+        self.assertEqual(cmd1.args, "ping")
+        self.assertEqual(cmd2.args, "ping")
