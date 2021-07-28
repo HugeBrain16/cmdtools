@@ -59,15 +59,16 @@ class Parser:
 
     def _parse(self):
         self._shift()
+        space_count = 0
         while self.char is not None:
-            if self.index < len(self.prefix):
-                if self.char != self.prefix[self.index]:
-                    if self.text[:self.index].rstrip() == self.prefix:
-                        self.args = self.text[self.index:].lstrip()
-                        break
+            if self.char == " ":
+                space_count += 1
             else:
-                if self.text[:self.index].rstrip() == self.prefix:
+                _pref = self.text[:self.index].rstrip()
+
+                if _pref == self.prefix and space_count <= 1:
                     self.args = self.text[self.index:].lstrip()
+
                     break
 
             self._shift()
