@@ -90,7 +90,7 @@ class Cmd:
         # parse command
         res = Parser(self.command_string, self.prefix)
         argres = []
-        if res is not None:
+        if res.args is not None:
             argres = shlex.split(res.args)
         argsc = len(argres)
 
