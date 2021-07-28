@@ -42,6 +42,37 @@ class MissingRequiredArgument(CmdBaseException):
         super().__init__(self.message)
 
 
+class Parser:
+    def __init__(self, text, prefix):
+        self.text = text
+        self.index = -1
+        self.prefix = prefix
+        self.char = None
+        self.args = None
+
+        if self.text:
+            self._parse()
+
+    def _shift(self):
+        self.index += 1
+        self.char = self.text[self.index] if self.index < len(self.text) else None
+
+    def _parse(self):
+        self._shift()
+        while self.char is not None:
+            if self.index < len(self.prefix):
+                if self.char != self.prefix[self.index]:
+                    if self.text[:self.index].rstrip() == self.prefix:
+                        self.args = self.text[self.index:].lstrip()
+                        break
+            else:
+                if self.text[:self.index].rstrip() == self.prefix:
+                    self.args = self.text[self.index:].lstrip()
+                    break
+
+            self._shift()
+
+
 class Cmd:
     """main class for parsing commands"""
 
@@ -56,10 +87,10 @@ class Cmd:
         self.max_args = max_args
 
         # parse command
-        res = re.match(rf"^{self.prefix}(?P<args>.*)", self.command_string)
+        res = Parser(self.command_string, self.prefix)
         argres = []
         if res is not None:
-            argres = shlex.split("".join(res.group("args")))
+            argres = shlex.split(res.args)
         argsc = len(argres)
 
         if self.max_args == 0:
