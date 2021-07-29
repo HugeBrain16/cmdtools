@@ -92,22 +92,21 @@ class Cmd:
         argres = []
         if res.args is not None:
             argres = shlex.split(res.args)
-        argsc = len(argres)
 
         if self.max_args == 0:
-            self.max_args = argsc
+            self.max_args = len(argres) - 1 if (len(argres) - 1) >= 0 else 0
 
-        if argsc > self.max_args:
-            raise ParsingError(f"arguments exceeds max arguments: ({self.max_args})")
+        if (len(argres) - 1) >= 0 and (len(argres) - 1) > self.max_args:
+            raise ParsingError(f"arguments exceeds max arguments: {self.max_args}")
 
-        for i in range(len(argres), self.max_args):  # insert empty arguments
-            argres.insert(i, "")
+        while (len(argres) - 1) >= 0 and (len(argres) - 1) < self.max_args:  # insert empty arguments
+            argres.append("")
 
         if argres:
             self.parsed_command = {
                 "name": argres[0],
                 "args": argres[1:],
-                "args_count": argsc,
+                "args_count": len(argres[1:]),
             }
 
             if convert_args:
