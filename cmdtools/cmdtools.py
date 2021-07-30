@@ -78,7 +78,6 @@ class Cmd:
     """main class for parsing commands"""
 
     def __init__(self, command_string, prefix="/", max_args=0, convert_args=False):
-        self.parsed_command = None
         self.name = None
         self.args = []
         self.args_count = len(self.args)
@@ -103,37 +102,25 @@ class Cmd:
             argres.append("")
 
         if argres:
-            self.parsed_command = {
-                "name": argres[0],
-                "args": argres[1:],
-                "args_count": len(argres[1:]),
-            }
+            self.name = argres[0]
+            self.args = argres[1:]
+            self.args_count = len(argres[1:])
 
             if convert_args:
                 self._cvt_cmd()
-
-            self.name = self.parsed_command["name"]
-            self.args = self.parsed_command["args"]
-            self.args_count = self.parsed_command["args_count"]
-
-    def get_dict(self):
-        """return parsed command"""
-        return self.parsed_command
 
     def _get_args_type_char(self, max_args=0):
         """get command arguments data types in char format"""
         argtype = list()
 
         if max_args == 0:
-            for arg in self.parsed_command["args"][
-                0 : self.parsed_command["args_count"]
-            ]:
+            for arg in self.args[0: len(self.args)]:
                 if not arg:
                     continue
 
                 argtype.append(type(arg).__name__[0])  # get type char
         else:
-            for arg in self.parsed_command["args"][0:max_args]:
+            for arg in self.args[0:max_args]:
                 if not arg:
                     continue
 
@@ -145,16 +132,16 @@ class Cmd:
         """evaluate literal arguments"""
         cvt = [(_CVT_FLOAT_PTR, float), (_CVT_INT_PTR, int)]
 
-        for i in range(len(self.parsed_command["args"])):
-            if not self.parsed_command["args"][i]:
+        for i in range(len(self.args)):
+            if not self.args[i]:
                 break  # empty args
 
             for cvt_ in cvt:
-                res = cvt_[0].match(self.parsed_command["args"][i])
+                res = cvt_[0].match(self.args[i])
 
                 if res:
-                    self.parsed_command["args"][i] = cvt_[1](
-                        self.parsed_command["args"][i]
+                    self.args[i] = cvt_[1](
+                        self.args[i]
                     )
                     break  # has found the correct data type
 
@@ -183,7 +170,7 @@ class Cmd:
         """match arguments by arguments data types"""
         matched = 0
         for i, arg_type in enumerate(argtype):
-            arg_len = len(str(self.parsed_command["args"][i]))
+            arg_len = len(str(self.args[i]))
             if arg_type in ("i", "f"):
                 if format_match[i] == "s":
                     matched += 1  # allow int or float as 's' format
@@ -202,7 +189,7 @@ class Cmd:
 
         return False
 
-    def process_cmd(self, callback, error_handler_callback=None, attrs=None):
+    def process_cmd(self, callback, error_callback=None, attrs=None):
         """process command..."""
         if attrs is None:
             attrs = {}
@@ -213,8 +200,8 @@ class Cmd:
         ):
             raise TypeError("callback is not a function or method")
         if (
-            error_handler_callback
-            and inspect.isfunction(error_handler_callback) is False
+            error_callback
+            and inspect.isfunction(error_callback) is False
             and inspect.ismethod(callback) is False
         ):
             raise TypeError("error handler callback is not a function")
@@ -234,16 +221,16 @@ class Cmd:
                 if hasattr(callback.__self__, attr):
                     cdefattr.update({attr: getattr(callback.__self__, attr)})
 
-        if error_handler_callback is not None:
-            if not inspect.ismethod(error_handler_callback):
+        if error_callback is not None:
+            if not inspect.ismethod(error_callback):
                 for attr in attrs:
-                    if hasattr(error_handler_callback, attr):
-                        cedefattr.update({attr: getattr(error_handler_callback, attr)})
+                    if hasattr(error_callback, attr):
+                        cedefattr.update({attr: getattr(error_callback, attr)})
             else:
                 for attr in attrs:
-                    if hasattr(error_handler_callback.__self__, attr):
+                    if hasattr(error_callback.__self__, attr):
                         cedefattr.update(
-                            {attr: getattr(error_handler_callback.__self__, attr)}
+                            {attr: getattr(error_callback.__self__, attr)}
                         )
 
         if not inspect.ismethod(callback):
@@ -253,13 +240,13 @@ class Cmd:
             for attr in attrs:
                 setattr(callback.__self__, attr, attrs[attr])
 
-        if error_handler_callback is not None:
-            if not inspect.ismethod(error_handler_callback):
+        if error_callback is not None:
+            if not inspect.ismethod(error_callback):
                 for attr in attrs:
-                    setattr(error_handler_callback, attr, attrs[attr])
+                    setattr(error_callback, attr, attrs[attr])
             else:
                 for attr in attrs:
-                    setattr(error_handler_callback.__self__, attr, attrs[attr])
+                    setattr(error_callback.__self__, attr, attrs[attr])
 
         ret = None
         try:
@@ -273,48 +260,41 @@ class Cmd:
                     cparams = cparams[1:]
 
             if cdefaults is None:
-                if len(self.parsed_command["args"]) < len(cparams):
+                if len(self.args) < len(cparams):
                     raise MissingRequiredArgument(
                         "missing required argument: "
-                        + cparams[len(self.parsed_command["args"])],
-                        param=cparams[len(self.parsed_command["args"])],
+                        + cparams[len(self.args)],
+                        param=cparams[len(self.args)],
                     )
 
             else:
 
                 posargs_length = len(cparams) - len(cdefaults)
 
-                if len(self.parsed_command["args"]) < posargs_length:
+                if len(self.args) < posargs_length:
                     raise MissingRequiredArgument(
                         "missing required argument: "
-                        + cparams[len(self.parsed_command["args"])],
-                        param=cparams[len(self.parsed_command["args"])],
+                        + cparams[len(self.args)],
+                        param=cparams[len(self.args)],
                     )
 
-                if (len(self.parsed_command) - posargs_length) < len(cdefaults):
-                    for darg in cdefaults:
-                        self.parsed_command["args_count"] += 1
-                        self.parsed_command["args"].insert(
-                            self.parsed_command["args_count"], darg
-                        )
-
             if cargspec.varargs is None:
-                ret = callback(*self.parsed_command["args"][: len(cparams)])
+                ret = callback(*self.args[: len(cparams)])
             else:
                 ret = callback(
-                    *self.parsed_command["args"][: self.parsed_command["args_count"]]
+                    *self.args[: len(self.args)]
                 )
 
         except Exception as exception:
-            if error_handler_callback is None:
+            if error_callback is None:
                 raise ProcessError(
                     "an error occurred during processing callback '"
-                    + f"{callback.__name__}()' for command '{self.parsed_command['name']}, "
-                    + "no error handler callback specified, exception: ",
+                    + f"{callback.__name__}()' for command '{self.name}, "
+                    + "no error handler callback specified.",
                     exception,
                 ) from exception
 
-            error_handler_callback(error=exception)
+            error_callback(error=exception)
 
         if not inspect.ismethod(callback):
             for attr in attrs:
@@ -325,15 +305,15 @@ class Cmd:
                 if hasattr(callback.__self__, attr):
                     delattr(callback.__self__, attr)
 
-        if error_handler_callback is not None:
-            if not inspect.ismethod(error_handler_callback):
+        if error_callback is not None:
+            if not inspect.ismethod(error_callback):
                 for attr in attrs:
-                    if hasattr(error_handler_callback, attr):
-                        delattr(error_handler_callback, attr)
+                    if hasattr(error_callback, attr):
+                        delattr(error_callback, attr)
             else:
                 for attr in attrs:
-                    if hasattr(error_handler_callback.__self__, attr):
-                        delattr(error_handler_callback.__self__, attr)
+                    if hasattr(error_callback.__self__, attr):
+                        delattr(error_callback.__self__, attr)
 
         if not inspect.ismethod(callback):
             for attr in cdefattr:
@@ -342,13 +322,13 @@ class Cmd:
             for attr in cdefattr:
                 setattr(callback.__self__, attr, cdefattr[attr])
 
-        if error_handler_callback is not None:
-            if not inspect.ismethod(error_handler_callback):
+        if error_callback is not None:
+            if not inspect.ismethod(error_callback):
                 for attr in cedefattr:
-                    setattr(error_handler_callback, attr, cedefattr[attr])
+                    setattr(error_callback, attr, cedefattr[attr])
             else:
                 for attr in cedefattr:
-                    setattr(error_handler_callback.__self__, attr, cedefattr[attr])
+                    setattr(error_callback.__self__, attr, cedefattr[attr])
 
         return ret
 
@@ -362,7 +342,7 @@ class Cmd:
 
         return message
 
-    async def aio_process_cmd(self, callback, error_handler_callback=None, attrs=None):
+    async def aio_process_cmd(self, callback, error_callback=None, attrs=None):
         """coroutine process cmd"""
         if attrs is None:
             attrs = {}
@@ -370,8 +350,8 @@ class Cmd:
         if inspect.iscoroutinefunction(callback) is False:
             raise TypeError("callback is not a coroutine function")
         if (
-            error_handler_callback
-            and inspect.iscoroutinefunction(error_handler_callback) is False
+            error_callback
+            and inspect.iscoroutinefunction(error_callback) is False
         ):
             raise TypeError(
                 "error handler callback is not a coroutine function function"
@@ -392,16 +372,16 @@ class Cmd:
                 if hasattr(callback.__self__, attr):
                     cdefattr.update({attr: getattr(callback.__self__, attr)})
 
-        if error_handler_callback is not None:
-            if not inspect.ismethod(error_handler_callback):
+        if error_callback is not None:
+            if not inspect.ismethod(error_callback):
                 for attr in attrs:
-                    if hasattr(error_handler_callback, attr):
-                        cedefattr.update({attr: getattr(error_handler_callback, attr)})
+                    if hasattr(error_callback, attr):
+                        cedefattr.update({attr: getattr(error_callback, attr)})
             else:
                 for attr in attrs:
-                    if hasattr(error_handler_callback.__self__, attr):
+                    if hasattr(error_callback.__self__, attr):
                         cedefattr.update(
-                            {attr: getattr(error_handler_callback.__self__, attr)}
+                            {attr: getattr(error_callback.__self__, attr)}
                         )
 
         if not inspect.ismethod(callback):
@@ -411,13 +391,13 @@ class Cmd:
             for attr in attrs:
                 setattr(callback.__self__, attr, attrs[attr])
 
-        if error_handler_callback is not None:
-            if not inspect.ismethod(error_handler_callback):
+        if error_callback is not None:
+            if not inspect.ismethod(error_callback):
                 for attr in attrs:
-                    setattr(error_handler_callback, attr, attrs[attr])
+                    setattr(error_callback, attr, attrs[attr])
             else:
                 for attr in attrs:
-                    setattr(error_handler_callback.__self__, attr, attrs[attr])
+                    setattr(error_callback.__self__, attr, attrs[attr])
 
         ret = None
         try:
@@ -431,48 +411,41 @@ class Cmd:
                     cparams = cparams[1:]
 
             if cdefaults is None:
-                if len(self.parsed_command["args"]) < len(cparams):
+                if len(self.args) < len(cparams):
                     raise MissingRequiredArgument(
                         "missing required argument: "
-                        + cparams[len(self.parsed_command["args"])],
-                        param=cparams[len(self.parsed_command["args"])],
+                        + cparams[len(self.args)],
+                        param=cparams[len(self.args)],
                     )
 
             else:
 
                 posargs_length = len(cparams) - len(cdefaults)
 
-                if len(self.parsed_command["args"]) < posargs_length:
+                if len(self.args) < posargs_length:
                     raise MissingRequiredArgument(
                         "missing required argument: "
-                        + cparams[len(self.parsed_command["args"])],
-                        param=cparams[len(self.parsed_command["args"])],
+                        + cparams[len(self.args)],
+                        param=cparams[len(self.args)],
                     )
 
-                if (len(self.parsed_command) - posargs_length) < len(cdefaults):
-                    for darg in cdefaults:
-                        self.parsed_command["args_count"] += 1
-                        self.parsed_command["args"].insert(
-                            self.parsed_command["args_count"], darg
-                        )
-
             if cargspec.varargs is None:
-                ret = await callback(*self.parsed_command["args"][: len(cparams)])
+                ret = await callback(*self.args[: len(cparams)])
             else:
                 ret = await callback(
-                    *self.parsed_command["args"][: self.parsed_command["args_count"]]
+                    *self.args[: len(self.args)]
                 )
 
         except Exception as exception:
-            if error_handler_callback is None:
+            if error_callback is None:
                 raise ProcessError(
                     "an error occurred during processing callback '"
-                    + f"{callback.__name__}()' for command '{self.parsed_command['name']}, "
+                    + f"{callback.__name__}()' for command '{self.name}, "
                     + "no error handler callback specified, exception: ",
                     exception,
                 ) from exception
 
-            await error_handler_callback(error=exception)
+            await error_callback(error=exception)
 
         if not inspect.ismethod(callback):
             for attr in attrs:
@@ -483,15 +456,15 @@ class Cmd:
                 if hasattr(callback.__self__, attr):
                     delattr(callback.__self__, attr)
 
-        if error_handler_callback is not None:
-            if not inspect.ismethod(error_handler_callback):
+        if error_callback is not None:
+            if not inspect.ismethod(error_callback):
                 for attr in attrs:
-                    if hasattr(error_handler_callback, attr):
-                        delattr(error_handler_callback, attr)
+                    if hasattr(error_callback, attr):
+                        delattr(error_callback, attr)
             else:
                 for attr in attrs:
-                    if hasattr(error_handler_callback.__self__, attr):
-                        delattr(error_handler_callback.__self__, attr)
+                    if hasattr(error_callback.__self__, attr):
+                        delattr(error_callback.__self__, attr)
 
         if not inspect.ismethod(callback):
             for attr in cdefattr:
@@ -500,12 +473,12 @@ class Cmd:
             for attr in cdefattr:
                 setattr(callback.__self__, attr, cdefattr[attr])
 
-        if error_handler_callback is not None:
-            if not inspect.ismethod(error_handler_callback):
+        if error_callback is not None:
+            if not inspect.ismethod(error_callback):
                 for attr in cedefattr:
-                    setattr(error_handler_callback, attr, cedefattr[attr])
+                    setattr(error_callback, attr, cedefattr[attr])
             else:
                 for attr in cedefattr:
-                    setattr(error_handler_callback.__self__, attr, cedefattr[attr])
+                    setattr(error_callback.__self__, attr, cedefattr[attr])
 
         return ret
