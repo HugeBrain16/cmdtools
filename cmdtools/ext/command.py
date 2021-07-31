@@ -57,12 +57,6 @@ class CommandObject:
         self.name = getattr(self.object, "name", name)  # type: str
 
     @property
-    def help(self) -> str:
-        return getattr(
-            self.object, "_help", None  # avoid calling built in function 'help'
-        )
-
-    @property
     def callback(self):
         return getattr(self.object, self.name, None)
 
