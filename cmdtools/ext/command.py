@@ -57,6 +57,10 @@ class CommandObject:
         self.name = getattr(self.object, "name", name)  # type: str
 
     @property
+    def aliases(self) -> list:
+        return getattr(self.object, "aliases", [])
+
+    @property
     def callback(self):
         return getattr(self.object, self.name, None)
 
@@ -118,7 +122,7 @@ class CommandRunner:
         if attrs is None:
             attrs = {}
 
-        if self.command.name == cmd.name:
+        if self.command.name == cmd.name or cmd.name in self.command.aliases:
             args = []
             if self.command.has_callback():
                 args.append(self.command.callback)
@@ -153,7 +157,7 @@ class CommandRunnerContainer:
             attrs = {}
 
         for command in self.commands:
-            if command.name == cmd.name:
+            if command.name == cmd.name or cmd.name in command.aliases:
                 args = []
                 if command.has_callback():
                     args.append(command.callback)
