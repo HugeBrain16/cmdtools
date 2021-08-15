@@ -281,9 +281,7 @@ class Cmd:
             if cargspec.varargs is None:
                 ret = callback(*self.args[: len(cparams)])
             else:
-                ret = callback(
-                    *self.args[: len(self.args)]
-                )
+                ret = callback(*self.args)
 
         except Exception as exception:
             if error_callback is None:
@@ -432,9 +430,7 @@ class Cmd:
             if cargspec.varargs is None:
                 ret = await callback(*self.args[: len(cparams)])
             else:
-                ret = await callback(
-                    *self.args[: len(self.args)]
-                )
+                ret = await callback(*self.args)
 
         except Exception as exception:
             if error_callback is None:
