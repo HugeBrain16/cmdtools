@@ -118,10 +118,6 @@ class CommandWrapper:
             wrapper.name = kwargs.get('name', func.__name__)
             wrapper.aliases = kwargs.get('aliases', [])
             wrapper.callback = func
-
-            for option in kwargs:
-                setattr(wrapper, option, kwargs.get(option, None))
-
             self.commands.append(wrapper)
 
             def func_wrapper(*args, **kwargs):
