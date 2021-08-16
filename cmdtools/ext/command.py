@@ -385,6 +385,6 @@ def get_command_names(commands: list, get_aliases=False):
         names.append(command.name)
 
         if hasattr(command, "aliases") and get_aliases:
-            names.append(command.aliases)
+            names.extend(command.aliases)
 
     return names
