@@ -26,6 +26,14 @@ Class:
     CommandRunnerContainer:
         Parameters:
             - commands: list of CommandObject class to run
+
+    CommandWrapperObject:
+        -
+
+    CommandWrapper:
+        Parameters:
+            - commands: list of CommandWrapperObject class to run
+
 """
 
 import os
@@ -44,6 +52,110 @@ class RunnerError(Exception):
     raised when running an unmatched command name
     or some other exceptions
     """
+
+
+class CommandWrapperObject:
+    def __init__(self):
+        self.name = None
+        self.aliases = []
+        self.callback = None
+        self.error_callback = None
+
+    def error(self, func):
+        self.error_callback = func
+
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrapper
+
+    def __call__(self):
+        return self.callback(*self._args, **self._kwargs)
+
+    def _checkfunc(self, func) -> bool:
+        """check is object callable"""
+        if func is not None and (
+            inspect.isfunction(func)
+            or inspect.ismethod(func)
+            or inspect.iscoroutinefunction(func)
+        ):
+            return True
+
+        return False
+
+    def is_coroutine(self) -> bool:
+        """check whether command is coroutine or not, based by the callbacks"""
+        if self.has_callback():
+            return inspect.iscoroutinefunction(self.callback)
+        elif self.has_callback() and self.has_error_callback():
+            return inspect.iscoroutinefunction(
+                self.callback
+            ) and inspect.iscoroutinefunction(self.error_callback)
+
+        # not a coroutine or object does not have command callback
+        return False
+
+    def has_callback(self) -> bool:
+        """check whether callback is exist or not"""
+        return self._checkfunc(self.callback)
+
+    def has_error_callback(self) -> bool:
+        """check whether error callback is exist or not"""
+        return self._checkfunc(self.error_callback)
+
+
+class CommandWrapper:
+    """wrapper for commands (?)"""
+    def __init__(self, commands: list = None):
+        if commands is None:
+            commands = []
+
+        self.commands = commands
+
+    def command(self, **kwargs):
+        """base decorator for callbacks"""
+        def decorator(func):
+            wrapper = CommandWrapperObject()
+            wrapper.name = kwargs.get('name', func.__name__)
+            wrapper.aliases = kwargs.get('aliases', [])
+            wrapper.callback = func
+
+            for option in kwargs:
+                setattr(wrapper, option, kwargs.get(option, None))
+
+            self.commands.append(wrapper)
+
+            def func_wrapper(*args, **kwargs):
+                setattr(wrapper, "_args", args)
+                setattr(wrapper, "_kwargs", kwargs)
+                return wrapper
+            return func_wrapper()
+        return decorator
+
+    async def run(self, cmd, attrs: dict = None):
+        if attrs is None:
+            attrs = {}
+
+        if not isinstance(cmd, cmdtools.Cmd):
+            raise TypeError("cmd is not a cmdtools Cmd class")
+
+        for command in self.commands:
+            if command.name == cmd.name or cmd.name in command.aliases:
+                args = []
+                if command.has_callback():
+                    args.append(command.callback)
+                else:
+                    return logging.error(
+                        f"Command name '{command.name}' has no callback"
+                    )
+                if command.has_error_callback():
+                    args.append(command.error_callback)
+
+                if command.is_coroutine():
+                    return await cmd.aio_process_cmd(*args, attrs=attrs)
+
+                return cmd.process_cmd(*args, attrs=attrs)
+
+        raise RunnerError(f"Couln't find command '{cmd.name}'")
 
 
 class CommandObject:
