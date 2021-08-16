@@ -40,7 +40,7 @@ import os
 import inspect
 import logging
 import importlib
-from .. import cmdtools
+import cmdtools
 
 
 class DuplicateCommandNameError(Exception):
