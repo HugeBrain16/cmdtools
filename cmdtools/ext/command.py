@@ -378,10 +378,13 @@ class CommandDir(CommandRunnerContainer):
                                         )
 
 
-def get_command_names(commands: list):
+def get_command_names(commands: list, get_aliases=False):
     """get command names from command list of CommandObject"""
     names = []
     for command in commands:
         names.append(command.name)
+
+        if hasattr(command, "aliases") and get_aliases:
+            names.append(command.aliases)
 
     return names
