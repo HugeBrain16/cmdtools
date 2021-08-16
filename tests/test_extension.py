@@ -1,6 +1,6 @@
 import asyncio
-from .. import cmdtools
-from ..cmdtools.ext import command
+import cmdtools
+from cmdtools.ext import command
 
 
 class Add(command.Command):

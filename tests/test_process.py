@@ -1,5 +1,5 @@
 import unittest
-from .. import cmdtools
+import cmdtools
 
 
 class TestProcess(unittest.TestCase):

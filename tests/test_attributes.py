@@ -1,4 +1,4 @@
-from .. import cmdtools
+import cmdtools
 
 def _test_func():
 	assert _test_func.test == 20

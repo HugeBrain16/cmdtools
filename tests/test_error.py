@@ -1,4 +1,4 @@
-from .. import cmdtools
+import cmdtools
 
 
 def test_error():
