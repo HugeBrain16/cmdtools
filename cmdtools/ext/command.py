@@ -113,18 +113,28 @@ class CommandWrapper:
 
     def command(self, **kwargs):
         """base decorator for callbacks"""
-        def decorator(func):
-            wrapper = CommandWrapperObject()
-            wrapper.name = kwargs.get('name', func.__name__)
-            wrapper.aliases = kwargs.get('aliases', [])
-            wrapper.callback = func
-            self.commands.append(wrapper)
+        def decorator(obj):
+            if (inspect.isfunction(obj), inspect.ismethod(obj), inspect.iscoroutinefunction(obj)).count(True) > 0:
+                wrapper = CommandWrapperObject()
 
-            def func_wrapper(*args, **kwargs):
-                setattr(wrapper, "_args", args)
-                setattr(wrapper, "_kwargs", kwargs)
-                return wrapper
-            return func_wrapper()
+                for attr in kwargs:
+                    setattr(wrapper, attr, kwargs[attr])
+
+                wrapper.name = kwargs.get('name', obj.__name__)
+                wrapper.aliases = kwargs.get('aliases', [])
+                wrapper.callback = obj
+                self.commands.append(wrapper)
+
+                def func_wrapper(*args, **kwargs):
+                    setattr(wrapper, "_args", args)
+                    setattr(wrapper, "_kwargs", kwargs)
+                    return wrapper
+                return func_wrapper()
+            elif inspect.isclass(obj):
+                if isinstance(obj(), CommandObject):
+                    self.commands.append(obj())
+            else:
+                raise TypeError("Cannot assign command for object:", type(obj))
         return decorator
 
     async def run(self, cmd, attrs: dict = None):
