@@ -111,7 +111,7 @@ class CommandWrapper:
 
         self.commands = commands
 
-    def command(self, **kwargs):
+    def command(self, *args, **kwargs):
         """base decorator for callbacks"""
         def decorator(obj):
             if (inspect.isfunction(obj), inspect.ismethod(obj), inspect.iscoroutinefunction(obj)).count(True) > 0:
