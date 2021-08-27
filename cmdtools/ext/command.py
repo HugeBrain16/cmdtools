@@ -142,7 +142,7 @@ class CommandWrapper:
             attrs = {}
 
         if not isinstance(cmd, cmdtools.Cmd):
-            raise TypeError("cmd is not a cmdtools Cmd class")
+            raise TypeError(f"object {type(cmd)} is not a Cmd instance")
 
         for command in self.commands:
             if command.name == cmd.name or cmd.name in command.aliases:
@@ -235,7 +235,7 @@ class CommandRunner:
         """run command from parsed command object"""
 
         if not isinstance(cmd, cmdtools.Cmd):
-            raise TypeError("cmd is not a cmdtools Cmd class")
+            raise TypeError(f"object {type(cmd)} is not a Cmd instance")
 
         if attrs is None:
             attrs = {}
@@ -269,7 +269,7 @@ class CommandRunnerContainer:
         """run command from parsed command object"""
 
         if not isinstance(cmd, cmdtools.Cmd):
-            raise TypeError("cmd is not a cmdtools Cmd class")
+            raise TypeError(f"object {type(cmd)} is not a Cmd instance")
 
         if attrs is None:
             attrs = {}
@@ -320,14 +320,7 @@ class CommandModule(CommandRunnerContainer):
 
                     if inspect.isclass(obj_) and obj_.__module__ == module.__name__:
                         if isinstance(obj_(), CommandObject):
-                            cobj = obj_()
-
-                            if cobj.name not in get_command_names(self.commands):
-                                self.commands.append(cobj)
-                            else:
-                                raise DuplicateCommandNameError(
-                                    f"Command with name '{cobj.name}' is already exist in command container"
-                                )
+                            self.commands.append(obj_())
             else:
                 self.commands.append(CommandObject(module))
 
@@ -363,29 +356,16 @@ class CommandDir(CommandRunnerContainer):
                         + file.rsplit(".py", 1)[0]
                     )
                     if self.load_classes is False:
-                        cobj = CommandObject(module, file.rsplit(".py", 1)[0])
-                        if cobj.name not in get_command_names(self.commands):
-                            self.commands.append(cobj)
-                        else:
-                            raise DuplicateCommandNameError(
-                                f"Command with name '{cobj.name}' is already exist in command container"
-                            )
+                        self.commands.append(
+                            CommandObject(module, file.rsplit(".py", 1)[0])
+                        )
                     else:
                         for obj in dir(module):
                             obj_ = getattr(module, obj, None)
 
                             if inspect.isclass(obj_) and obj_.__module__ == module.__name__:
                                 if isinstance(obj_(), CommandObject):
-                                    cobj = obj_()
-
-                                    if cobj.name not in get_command_names(
-                                        self.commands
-                                    ):
-                                        self.commands.append(cobj)
-                                    else:
-                                        raise DuplicateCommandNameError(
-                                            f"Command with name '{cobj.name}' is already exist in command container"
-                                        )
+                                    self.commands.append(obj_())
 
 
 def get_command_names(commands: list, get_aliases=False):
