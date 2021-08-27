@@ -80,7 +80,6 @@ class Cmd:
     def __init__(self, command_string, prefix="/", max_args=0, convert_args=False):
         self.name = None
         self.args = []
-        self.args_count = len(self.args)
         self.command_string = command_string
         self.convert_args = convert_args
         self.prefix = prefix
@@ -104,7 +103,6 @@ class Cmd:
         if argres:
             self.name = argres[0]
             self.args = argres[1:]
-            self.args_count = len(argres[1:])
 
             if convert_args:
                 self._cvt_cmd()
@@ -335,7 +333,7 @@ class Cmd:
             "<"
             + f'Raw: "{self.command_string}", '
             + f'Name: "{self.name}", '
-            + f"Args: {self.args[0:self.args_count]}>"
+            + f"Args: {self.args}>"
         )
 
         return message
