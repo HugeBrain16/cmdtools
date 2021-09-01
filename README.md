@@ -5,10 +5,9 @@
     <img src="https://github.com/HugeBrain16/cmdtools/actions/workflows/python-package.yml/badge.svg" alt="tests"></img>
   </a>
   <a href="https://pypi.org/project/cmdtools-py">
-    <img src="https://badge.fury.io/py/cmdtools-py.svg" alt="PyPI version">
-  </a>
-  <a href="https://pypi.org/project/cmdtools-py">
     <img src="https://img.shields.io/pypi/dw/cmdtools-py" alt="downloads"></img>
+    <img src="https://badge.fury.io/py/cmdtools-py.svg" alt="PyPI version"></img>
+    <img src="https://img.shields.io/pypi/pyversions/cmdtools-py" alt="Python version"></img>
   </a>
 </div> 
 
