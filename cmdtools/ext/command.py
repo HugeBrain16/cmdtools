@@ -319,7 +319,7 @@ class CommandModule(CommandRunnerContainer):
                     obj_ = getattr(module, obj, None)
 
                     if inspect.isclass(obj_) and obj_.__module__ == module.__name__:
-                        if isinstance(obj_(), CommandObject):
+                        if CommandObject in inspect.getmro(obj_):
                             self.commands.append(obj_())
             else:
                 self.commands.append(CommandObject(module))
@@ -364,7 +364,7 @@ class CommandDir(CommandRunnerContainer):
                             obj_ = getattr(module, obj, None)
 
                             if inspect.isclass(obj_) and obj_.__module__ == module.__name__:
-                                if isinstance(obj_(), CommandObject):
+                                if CommandObject in inspect.getmro(obj_):
                                     self.commands.append(obj_())
 
 
