@@ -141,8 +141,8 @@ class CommandWrapper:
         if attrs is None:
             attrs = {}
 
-        if not isinstance(cmd, cmdtools.Cmd):
-            raise TypeError(f"object {type(cmd)} is not a Cmd instance")
+        if not isinstance(cmd, (cmdtools.Cmd, cmdtools.AioCmd)):
+            raise TypeError(f"object {type(cmd)} is not a Cmd or AioCmd instance")
 
         for command in self.commands:
             if command.name == cmd.name or cmd.name in command.aliases:
@@ -157,7 +157,7 @@ class CommandWrapper:
                     args.append(command.error_callback)
 
                 if command.is_coroutine():
-                    return await cmd.aio_process_cmd(*args, attrs=attrs)
+                    return await cmd.process_cmd(*args, attrs=attrs)
 
                 return cmd.process_cmd(*args, attrs=attrs)
 
@@ -234,8 +234,8 @@ class CommandRunner:
     async def run(self, cmd: cmdtools.Cmd, attrs: dict = None):
         """run command from parsed command object"""
 
-        if not isinstance(cmd, cmdtools.Cmd):
-            raise TypeError(f"object {type(cmd)} is not a Cmd instance")
+        if not isinstance(cmd, (cmdtools.Cmd, cmdtools.AioCmd)):
+            raise TypeError(f"object {type(cmd)} is not a Cmd or AioCmd instance")
 
         if attrs is None:
             attrs = {}
@@ -252,7 +252,7 @@ class CommandRunner:
                 args.append(self.command.error_callback)
 
             if self.command.is_coroutine():
-                return await cmd.aio_process_cmd(*args, attrs=attrs)
+                return await cmd.process_cmd(*args, attrs=attrs)
 
             return cmd.process_cmd(*args, attrs=attrs)
 
@@ -268,8 +268,8 @@ class CommandRunnerContainer:
     async def run(self, cmd: cmdtools.Cmd, attrs: dict = None):
         """run command from parsed command object"""
 
-        if not isinstance(cmd, cmdtools.Cmd):
-            raise TypeError(f"object {type(cmd)} is not a Cmd instance")
+        if not isinstance(cmd, (cmdtools.Cmd, cmdtools.AioCmd)):
+            raise TypeError(f"object {type(cmd)} is not a Cmd or AioCmd instance")
 
         if attrs is None:
             attrs = {}
@@ -287,7 +287,7 @@ class CommandRunnerContainer:
                     args.append(command.error_callback)
 
                 if command.is_coroutine():
-                    return await cmd.aio_process_cmd(*args, attrs=attrs)
+                    return await cmd.process_cmd(*args, attrs=attrs)
 
                 return cmd.process_cmd(*args, attrs=attrs)
 
