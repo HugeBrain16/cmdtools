@@ -338,7 +338,9 @@ class Cmd:
 
         return message
 
-    async def aio_process_cmd(self, callback, error_callback=None, attrs=None):
+
+class AioCmd(Cmd):
+    async def process_cmd(self, callback, error_callback=None, attrs=None):
         """coroutine process cmd"""
         if attrs is None:
             attrs = {}
