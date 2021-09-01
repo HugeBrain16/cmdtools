@@ -6,7 +6,7 @@ def e_attrtest(error):
 
 def attrtest():
 	print(attrtest.name)
-	# 1 / 0 # uncomment expression to invoke invoke error callback
+	# 1 / 0 # uncomment expression to invoke error callback
 
 cmd = cmdtools.Cmd("/invoke")
 cmd.process_cmd(attrtest, e_attrtest,
