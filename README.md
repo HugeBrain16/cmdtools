@@ -9,6 +9,9 @@
     <img src="https://badge.fury.io/py/cmdtools-py.svg" alt="PyPI version"></img>
     <img src="https://img.shields.io/pypi/pyversions/cmdtools-py" alt="Python version"></img>
   </a>
+  <a href="https://codecov.io/gh/HugeBrain16/cmdtools">
+    <img src="https://codecov.io/gh/HugeBrain16/cmdtools/branch/main/graph/badge.svg?token=mynvRn223H"/>
+  </a>
 </div> 
 
 ## Installation
