@@ -67,3 +67,10 @@ if cmd.match_args('ssi', max_args=3):
 else:
     print('Correct Usage: /give <name: [str]> <item-name: [str]> <item-amount: [int]>')
 ```
+
+## Links
+
+PyPI project: https://pypi.org/project/cmdtools-py  
+Source code: https://github.com/HugeBrain16/cmdtools  
+Issues tracker: https://github.com/HugeBrain16/cmdtools/issues  
+Documentation: ...
