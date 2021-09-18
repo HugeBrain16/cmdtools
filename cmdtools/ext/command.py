@@ -131,7 +131,7 @@ class CommandWrapper:
                     return wrapper
                 return func_wrapper()
             elif inspect.isclass(obj):
-                if isinstance(obj(), CommandObject):
+                if CommandObject in inspect.getmro(obj):
                     self.commands.append(obj())
             else:
                 raise TypeError("Cannot assign command for object:", type(obj))
