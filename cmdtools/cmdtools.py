@@ -74,6 +74,56 @@ class Parser:
             self._shift()
 
 
+class AttrMan:
+    """some kind of attributes manager"""
+    def __init__(self, target, **attrs):
+        self.target = target
+        self.attrs = attrs
+
+        self.dupe_attrs = {}
+
+    def _save_dupes(self):
+        """save existing or duplicate attributes"""
+        if not inspect.ismethod(self.target):
+            for attr in self.attrs:
+                if hasattr(self.target, attr):
+                    self.dupe_attrs.update({attr: getattr(self.target, attr)})
+        else:
+            for attr in self.attrs:
+                if hasattr(self.target.__self__, attr):
+                    self.dupe_attrs.update({attr: getattr(self.target.__self__, attr)})
+
+    def _clear(self):
+        if not inspect.ismethod(self.target):
+            for attr in self.attrs:
+                if hasattr(self.target, attr):
+                    delattr(self.target, attr)
+        else:
+            for attr in self.attrs:
+                if hasattr(self.target.__self__, attr):
+                    delattr(self.target.__self__, attr)
+
+    def set(self):
+        self._save_dupes()
+
+        if not inspect.ismethod(self.target):
+            for attr in self.attrs:
+                setattr(self.target, attr, self.attrs[attr])
+        else:
+            for attr in self.attrs:
+                setattr(self.target.__self__, attr, self.attrs[attr])
+
+    def reset(self):
+        self._clear()
+
+        if not inspect.ismethod(self.target):
+            for attr in self.dupe_attrs:
+                setattr(self.target, attr, self.dupe_attrs[attr])
+        else:
+            for attr in self.dupe_attrs:
+                setattr(self.target.__self__, attr, self.dupe_attrs[attr])
+
+
 class Cmd:
     """main class for parsing commands"""
 
@@ -207,44 +257,11 @@ class Cmd:
         if not isinstance(attrs, dict):
             raise TypeError("attributes must be in dict object")
 
-        cdefattr = {}
-        cedefattr = {}
+        cman = AttrMan(callback, **attrs)
+        ecman = AttrMan(error_callback, **attrs) if error_callback is not None else None
 
-        if not inspect.ismethod(callback):
-            for attr in attrs:
-                if hasattr(callback, attr):
-                    cdefattr.update({attr: getattr(callback, attr)})
-        else:
-            for attr in attrs:
-                if hasattr(callback.__self__, attr):
-                    cdefattr.update({attr: getattr(callback.__self__, attr)})
-
-        if error_callback is not None:
-            if not inspect.ismethod(error_callback):
-                for attr in attrs:
-                    if hasattr(error_callback, attr):
-                        cedefattr.update({attr: getattr(error_callback, attr)})
-            else:
-                for attr in attrs:
-                    if hasattr(error_callback.__self__, attr):
-                        cedefattr.update(
-                            {attr: getattr(error_callback.__self__, attr)}
-                        )
-
-        if not inspect.ismethod(callback):
-            for attr in attrs:
-                setattr(callback, attr, attrs[attr])
-        else:
-            for attr in attrs:
-                setattr(callback.__self__, attr, attrs[attr])
-
-        if error_callback is not None:
-            if not inspect.ismethod(error_callback):
-                for attr in attrs:
-                    setattr(error_callback, attr, attrs[attr])
-            else:
-                for attr in attrs:
-                    setattr(error_callback.__self__, attr, attrs[attr])
+        cman.set()
+        ecman.set() if ecman is not None else None
 
         ret = None
         try:
@@ -292,39 +309,8 @@ class Cmd:
 
             error_callback(error=exception)
 
-        if not inspect.ismethod(callback):
-            for attr in attrs:
-                if hasattr(callback, attr):
-                    delattr(callback, attr)
-        else:
-            for attr in attrs:
-                if hasattr(callback.__self__, attr):
-                    delattr(callback.__self__, attr)
-
-        if error_callback is not None:
-            if not inspect.ismethod(error_callback):
-                for attr in attrs:
-                    if hasattr(error_callback, attr):
-                        delattr(error_callback, attr)
-            else:
-                for attr in attrs:
-                    if hasattr(error_callback.__self__, attr):
-                        delattr(error_callback.__self__, attr)
-
-        if not inspect.ismethod(callback):
-            for attr in cdefattr:
-                setattr(callback, attr, cdefattr[attr])
-        else:
-            for attr in cdefattr:
-                setattr(callback.__self__, attr, cdefattr[attr])
-
-        if error_callback is not None:
-            if not inspect.ismethod(error_callback):
-                for attr in cedefattr:
-                    setattr(error_callback, attr, cedefattr[attr])
-            else:
-                for attr in cedefattr:
-                    setattr(error_callback.__self__, attr, cedefattr[attr])
+        cman.reset()
+        ecman.reset() if ecman is not None else None
 
         return ret
 
@@ -345,57 +331,26 @@ class AioCmd(Cmd):
         if attrs is None:
             attrs = {}
 
-        if inspect.iscoroutinefunction(callback) is False:
-            raise TypeError("callback is not a coroutine function")
+        if (
+            inspect.isfunction(callback) is False
+            and inspect.ismethod(callback) is False
+        ):
+            raise TypeError("callback is not a function or method")
         if (
             error_callback
-            and inspect.iscoroutinefunction(error_callback) is False
+            and inspect.isfunction(error_callback) is False
+            and inspect.ismethod(callback) is False
         ):
-            raise TypeError(
-                "error handler callback is not a coroutine function function"
-            )
+            raise TypeError("error handler callback is not a function")
 
         if not isinstance(attrs, dict):
             raise TypeError("attributes must be in dict object")
 
-        cdefattr = {}
-        cedefattr = {}
+        cman = AttrMan(callback, **attrs)
+        ecman = AttrMan(error_callback, **attrs) if error_callback is not None else None
 
-        if not inspect.ismethod(callback):
-            for attr in attrs:
-                if hasattr(callback, attr):
-                    cdefattr.update({attr: getattr(callback, attr)})
-        else:
-            for attr in attrs:
-                if hasattr(callback.__self__, attr):
-                    cdefattr.update({attr: getattr(callback.__self__, attr)})
-
-        if error_callback is not None:
-            if not inspect.ismethod(error_callback):
-                for attr in attrs:
-                    if hasattr(error_callback, attr):
-                        cedefattr.update({attr: getattr(error_callback, attr)})
-            else:
-                for attr in attrs:
-                    if hasattr(error_callback.__self__, attr):
-                        cedefattr.update(
-                            {attr: getattr(error_callback.__self__, attr)}
-                        )
-
-        if not inspect.ismethod(callback):
-            for attr in attrs:
-                setattr(callback, attr, attrs[attr])
-        else:
-            for attr in attrs:
-                setattr(callback.__self__, attr, attrs[attr])
-
-        if error_callback is not None:
-            if not inspect.ismethod(error_callback):
-                for attr in attrs:
-                    setattr(error_callback, attr, attrs[attr])
-            else:
-                for attr in attrs:
-                    setattr(error_callback.__self__, attr, attrs[attr])
+        cman.set()
+        ecman.set() if ecman is not None else None
 
         ret = None
         try:
@@ -437,44 +392,13 @@ class AioCmd(Cmd):
                 raise ProcessError(
                     "an error occurred during processing callback '"
                     + f"{callback.__name__}()' for command '{self.name}, "
-                    + "no error handler callback specified, exception: ",
+                    + "no error handler callback specified.",
                     exception,
                 ) from exception
 
-            await error_callback(error=exception)
+            error_callback(error=exception)
 
-        if not inspect.ismethod(callback):
-            for attr in attrs:
-                if hasattr(callback, attr):
-                    delattr(callback, attr)
-        else:
-            for attr in attrs:
-                if hasattr(callback.__self__, attr):
-                    delattr(callback.__self__, attr)
-
-        if error_callback is not None:
-            if not inspect.ismethod(error_callback):
-                for attr in attrs:
-                    if hasattr(error_callback, attr):
-                        delattr(error_callback, attr)
-            else:
-                for attr in attrs:
-                    if hasattr(error_callback.__self__, attr):
-                        delattr(error_callback.__self__, attr)
-
-        if not inspect.ismethod(callback):
-            for attr in cdefattr:
-                setattr(callback, attr, cdefattr[attr])
-        else:
-            for attr in cdefattr:
-                setattr(callback.__self__, attr, cdefattr[attr])
-
-        if error_callback is not None:
-            if not inspect.ismethod(error_callback):
-                for attr in cedefattr:
-                    setattr(error_callback, attr, cedefattr[attr])
-            else:
-                for attr in cedefattr:
-                    setattr(error_callback.__self__, attr, cedefattr[attr])
+        cman.reset()
+        ecman.reset() if ecman is not None else None
 
         return ret
