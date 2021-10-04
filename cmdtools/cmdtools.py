@@ -396,7 +396,7 @@ class AioCmd(Cmd):
                     exception,
                 ) from exception
 
-            error_callback(error=exception)
+            await error_callback(error=exception)
 
         cman.reset()
         ecman.reset() if ecman is not None else None
