@@ -1,7 +1,7 @@
 import asyncio
 import cmdtools
 from cmdtools.ext import command
-from unittest import TestCase
+from unittest import IsolatedAsyncioTestCase
 
 group = command.CommandWrapper()
 
@@ -22,19 +22,19 @@ class NotCool(command.Command):
 
     def notcool(self):
         if hasattr(self, "test"):
-            if isinstance(self.test, TestCase):
+            if isinstance(self.test, IsolatedAsyncioTestCase):
                 self.test.assertEqual(self.num, 10)
 
     def error_notcool(self, error):
         if hasattr(self, "test"):
-            if isinstance(self.test, TestCase):
+            if isinstance(self.test, IsolatedAsyncioTestCase):
                 self.test.assertEqual(self.num, 10)
 
         raise error
 
 
-class TestExtension(TestCase):
-    async def run_cmd(self):
+class TestExtension(IsolatedAsyncioTestCase):
+    async def test_run(self):
         a = 10
         b = 10
 
@@ -42,12 +42,6 @@ class TestExtension(TestCase):
         result = await group.run(cmd)
         self.assertEqual(result, a + b)
 
-    async def run_attr(self):
+    async def test_attr(self):
         cmd = cmdtools.Cmd("/notcool")
         await group.run(cmd, attrs={"test": self, "num": 10})
-
-    def test_run(self):
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(self.run_cmd())
-        loop.run_until_complete(self.run_attr())
-        loop.close()
