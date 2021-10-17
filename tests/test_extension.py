@@ -1,44 +1,53 @@
 import asyncio
 import cmdtools
 from cmdtools.ext import command
+from unittest import TestCase
+
+group = command.CommandWrapper()
 
 
-class Add(command.Command):
+@group.command()
+class Cool(command.Command):
     def __init__(self):
-        self.result = None
-        self.name = "add"
-        super().__init__(name=self.name)
+        super().__init__(name="cool")
 
-    def add(self, n1, n2):
-        self.result = n1 + n2
+    def cool(self, a, b):
+        return a + b
 
 
-async def _test_class_cmd():
-    runner = command.CommandRunner(Add())
-    await runner.run(
-        cmdtools.Cmd("/add 40 40", convert_args=True)
-    )
+@group.command()
+class NotCool(command.Command):
+    def __init__(self):
+        super().__init__(name="notcool")
 
-    assert runner.command.result == 80
-    assert runner.command.name == "add"
+    def notcool(self):
+        if hasattr(self, "test"):
+            if isinstance(self.test, TestCase):
+                self.test.assertEqual(self.num, 10)
 
+    def error_notcool(self, error):
+        if hasattr(self, "test"):
+            if isinstance(self.test, TestCase):
+                self.test.assertEqual(self.num, 10)
 
-def test_class_cmd_run():
-    asyncio.run(_test_class_cmd())
-
-
-wrapper = command.CommandWrapper()
-
-
-@wrapper.command(name='add', aliases=['plus'])
-def add(n, y):
-    return n + y
+        raise error
 
 
-def test_command_wrapper():
-    result = asyncio.run(
-        wrapper.run(cmdtools.Cmd('/add 10 10', convert_args=True))
-    )
+class TestExtension(TestCase):
+    async def run_cmd(self):
+        a = 10
+        b = 10
 
-    assert result == 20
-    assert 'plus' in add.aliases
+        cmd = cmdtools.Cmd(f"/cool {a} {b}", convert_args=True)
+        result = await group.run(cmd)
+        self.assertEqual(result, a + b)
+
+    async def run_attr(self):
+        cmd = cmdtools.Cmd("/notcool")
+        await group.run(cmd, attrs={"test": self, "num": 10})
+
+    def test_run(self):
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(self.run_cmd())
+        loop.run_until_complete(self.run_attr())
+        loop.close()
