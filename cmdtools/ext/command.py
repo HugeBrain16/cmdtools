@@ -43,10 +43,6 @@ import importlib
 import cmdtools
 
 
-class DuplicateCommandNameError(Exception):
-    pass
-
-
 class RunnerError(Exception):
     """
     raised when running an unmatched command name
@@ -55,6 +51,8 @@ class RunnerError(Exception):
 
 
 class CommandWrapperObject:
+    """instance of wrapped command object"""
+
     def __init__(self):
         self.name = None
         self.aliases = []
@@ -62,6 +60,7 @@ class CommandWrapperObject:
         self.error_callback = None
 
     def error(self, func):
+        """error handler function wrapper"""
         self.error_callback = func
 
         def wrapper(*args, **kwargs):
@@ -69,9 +68,10 @@ class CommandWrapperObject:
         return wrapper
 
     def __call__(self):
-        return self.callback(*self._args, **self._kwargs)
+        return self.callback(*getattr(self, '_args', ()), **getattr(self, '_kwargs', {}))
 
-    def _checkfunc(self, func) -> bool:
+    @classmethod
+    def _checkfunc(cls, func) -> bool:
         """check is object callable"""
         if func is not None and (
             inspect.isfunction(func)
@@ -86,7 +86,7 @@ class CommandWrapperObject:
         """check whether command is coroutine or not, based by the callbacks"""
         if self.has_callback():
             return inspect.iscoroutinefunction(self.callback)
-        elif self.has_callback() and self.has_error_callback():
+        if self.has_callback() and self.has_error_callback():
             return inspect.iscoroutinefunction(
                 self.callback
             ) and inspect.iscoroutinefunction(self.error_callback)
@@ -111,14 +111,14 @@ class CommandWrapper:
 
         self.commands = commands
 
-    def command(self, *args, **kwargs):
+    def command(self, **kwargs):
         """base decorator for callbacks"""
         def decorator(obj):
             if (inspect.isfunction(obj), inspect.ismethod(obj), inspect.iscoroutinefunction(obj)).count(True) > 0:
                 wrapper = CommandWrapperObject()
 
-                for attr in kwargs:
-                    setattr(wrapper, attr, kwargs[attr])
+                for attr in kwargs.items():
+                    setattr(wrapper, attr[0], attr[1])
 
                 wrapper.name = kwargs.get('name', obj.__name__)
                 wrapper.aliases = kwargs.get('aliases', [])
@@ -130,7 +130,8 @@ class CommandWrapper:
                     setattr(wrapper, "_kwargs", kwargs)
                     return wrapper
                 return func_wrapper()
-            elif inspect.isclass(obj):
+
+            if inspect.isclass(obj):
                 if CommandObject in inspect.getmro(obj):
                     self.commands.append(obj())
             else:
@@ -138,6 +139,7 @@ class CommandWrapper:
         return decorator
 
     async def run(self, cmd, attrs: dict = None):
+        """run command instance"""
         if attrs is None:
             attrs = {}
 
@@ -150,9 +152,7 @@ class CommandWrapper:
                 if command.has_callback():
                     args.append(command.callback)
                 else:
-                    return logging.error(
-                        f"Command name '{command.name}' has no callback"
-                    )
+                    return logging.error("Command name '%s' has no callback", command.name)
                 if command.has_error_callback():
                     args.append(command.error_callback)
 
@@ -176,17 +176,21 @@ class CommandObject:
 
     @property
     def aliases(self) -> list:
+        """get command aliases"""
         return getattr(self.object, "_aliases", [])
 
     @property
     def callback(self):
+        """get command callback"""
         return getattr(self.object, self.name, None)
 
     @property
     def error_callback(self):
+        """get command error callback"""
         return getattr(self.object, "error_" + self.name, None)
 
-    def _checkfunc(self, func) -> bool:
+    @classmethod
+    def _checkfunc(cls, func) -> bool:
         """check is object callable"""
         if func is not None and (
             inspect.isfunction(func)
@@ -201,7 +205,7 @@ class CommandObject:
         """check whether command is coroutine or not, based by the callbacks"""
         if self.has_callback():
             return inspect.iscoroutinefunction(self.callback)
-        elif self.has_callback() and self.has_error_callback():
+        if self.has_callback() and self.has_error_callback():
             return inspect.iscoroutinefunction(
                 self.callback
             ) and inspect.iscoroutinefunction(self.error_callback)
@@ -245,9 +249,7 @@ class CommandRunner:
             if self.command.has_callback():
                 args.append(self.command.callback)
             else:
-                return logging.error(
-                    f"Command name '{self.command.name}' has no callback"
-                )
+                return logging.error("Command name '%s' has no callback", self.command.name)
             if self.command.has_error_callback():
                 args.append(self.command.error_callback)
 
@@ -280,9 +282,7 @@ class CommandRunnerContainer:
                 if command.has_callback():
                     args.append(command.callback)
                 else:
-                    return logging.error(
-                        f"Command name '{command.name}' has no callback"
-                    )
+                    return logging.error("Command name '%s' has no callback", command.name)
                 if command.has_error_callback():
                     args.append(command.error_callback)
 
@@ -306,7 +306,7 @@ class CommandModule(CommandRunnerContainer):
         self.load_module(load_classes=self.load_classes)
         super().__init__(commands=self.commands)
 
-    def load_module(self, load_classes):
+    def load_module(self, load_classes: bool):
         """load command classes from a module"""
         if self.filename.endswith(".py"):
             modulestr = (
@@ -337,7 +337,7 @@ class CommandDir(CommandRunnerContainer):
         self.load_commands(search_tree=self.search_tree, load_classes=self.load_classes)
         super().__init__(commands=self.commands)
 
-    def load_commands(self, search_tree, load_classes):
+    def load_commands(self, search_tree: bool, load_classes: bool):
         """load commands from files inside rootdir"""
         dirs = []
         if search_tree:
@@ -355,7 +355,7 @@ class CommandDir(CommandRunnerContainer):
                         + "."
                         + file.rsplit(".py", 1)[0]
                     )
-                    if self.load_classes is False:
+                    if load_classes is False:
                         self.commands.append(
                             CommandObject(module, file.rsplit(".py", 1)[0])
                         )

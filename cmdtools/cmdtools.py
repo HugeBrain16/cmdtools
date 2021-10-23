@@ -43,6 +43,8 @@ class MissingRequiredArgument(CmdBaseException):
 
 
 class Parser:
+    """string prefix parser"""
+
     def __init__(self, text, prefix):
         self.text = text
         self.index = -1
@@ -51,14 +53,16 @@ class Parser:
         self.args = None
 
         if self.text:
-            self._parse()
+            self.parse()
 
-    def _shift(self):
+    def shift(self):
+        """shift index to next character"""
         self.index += 1
         self.char = self.text[self.index] if self.index < len(self.text) else None
 
-    def _parse(self):
-        self._shift()
+    def parse(self):
+        """parse prefix and get arguments"""
+        self.shift()
         space_count = 0
         while self.char is not None:
             if self.char == " ":
@@ -71,7 +75,7 @@ class Parser:
 
                     break
 
-            self._shift()
+            self.shift()
 
 
 class AttrMan:
@@ -104,24 +108,26 @@ class AttrMan:
                     delattr(self.target.__self__, attr)
 
     def set(self):
+        """set attributes to target object"""
         self._save_dupes()
 
         if not inspect.ismethod(self.target):
-            for attr in self.attrs:
-                setattr(self.target, attr, self.attrs[attr])
+            for attr in self.attrs.items():
+                setattr(self.target, attr[0], attr[1])
         else:
-            for attr in self.attrs:
-                setattr(self.target.__self__, attr, self.attrs[attr])
+            for attr in self.attrs.items():
+                setattr(self.target.__self__, attr[0], attr[1])
 
     def reset(self):
+        """reset attributes from target object"""
         self._clear()
 
         if not inspect.ismethod(self.target):
-            for attr in self.dupe_attrs:
-                setattr(self.target, attr, self.dupe_attrs[attr])
+            for attr in self.dupe_attrs.items():
+                setattr(self.target, attr[0], attr[1])
         else:
-            for attr in self.dupe_attrs:
-                setattr(self.target.__self__, attr, self.dupe_attrs[attr])
+            for attr in self.dupe_attrs.items():
+                setattr(self.target.__self__, attr[0], attr[1])
 
 
 class Cmd:
@@ -147,7 +153,8 @@ class Cmd:
         if (len(argres) - 1) >= 0 and (len(argres) - 1) > self.max_args:
             raise ParsingError(f"arguments exceeds max arguments: {self.max_args}")
 
-        while (len(argres) - 1) >= 0 and (len(argres) - 1) < self.max_args:  # insert empty arguments
+        # insert empty arguments
+        while (len(argres) - 1) >= 0 and (len(argres) - 1) < self.max_args:
             argres.append("")
 
         if argres:
@@ -159,7 +166,7 @@ class Cmd:
 
     def _get_args_type_char(self, max_args=0):
         """get command arguments data types in char format"""
-        argtype = list()
+        argtype = []
 
         if max_args == 0:
             for arg in self.args[0: len(self.args)]:
@@ -180,16 +187,16 @@ class Cmd:
         """evaluate literal arguments"""
         cvt = [(_CVT_FLOAT_PTR, float), (_CVT_INT_PTR, int)]
 
-        for i in range(len(self.args)):
-            if not self.args[i]:
+        for idx, arg in enumerate(self.args):
+            if not arg:
                 break  # empty args
 
             for cvt_ in cvt:
-                res = cvt_[0].match(self.args[i])
+                res = cvt_[0].match(arg)
 
                 if res:
-                    self.args[i] = cvt_[1](
-                        self.args[i]
+                    self.args[idx] = cvt_[1](
+                        arg
                     )
                     break  # has found the correct data type
 
@@ -261,7 +268,8 @@ class Cmd:
         ecman = AttrMan(error_callback, **attrs) if error_callback is not None else None
 
         cman.set()
-        ecman.set() if ecman is not None else None
+        if ecman is not None:
+            ecman.set()
 
         ret = None
         try:
@@ -310,7 +318,8 @@ class Cmd:
             error_callback(error=exception)
 
         cman.reset()
-        ecman.reset() if ecman is not None else None
+        if ecman is not None:
+            ecman.reset()
 
         return ret
 
@@ -326,6 +335,8 @@ class Cmd:
 
 
 class AioCmd(Cmd):
+    """asynchronous instance of Cmd"""
+
     async def process_cmd(self, callback, error_callback=None, attrs=None):
         """coroutine process cmd"""
         if attrs is None:
@@ -350,7 +361,8 @@ class AioCmd(Cmd):
         ecman = AttrMan(error_callback, **attrs) if error_callback is not None else None
 
         cman.set()
-        ecman.set() if ecman is not None else None
+        if ecman is not None:
+            ecman.set()
 
         ret = None
         try:
@@ -399,6 +411,7 @@ class AioCmd(Cmd):
             await error_callback(error=exception)
 
         cman.reset()
-        ecman.reset() if ecman is not None else None
+        if ecman is not None:
+            ecman.reset()
 
         return ret
