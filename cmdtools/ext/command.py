@@ -50,6 +50,71 @@ class RunnerError(Exception):
     """
 
 
+class CommandObject:
+    """command object container"""
+
+    def __init__(self, object_, name: str = None):
+        self.object = object_
+
+        # try get the command name from the module or class first
+        # if no preset name, use command file name as the command name
+        self.name = getattr(self.object, "name", name)  # type: str
+
+    @property
+    def aliases(self) -> list:
+        """get command aliases"""
+        return getattr(self.object, "__aliases__", [])
+
+    @property
+    def callback(self):
+        """get command callback"""
+        return getattr(self.object, self.name, None)
+
+    @property
+    def error_callback(self):
+        """get command error callback"""
+        return getattr(self.object, "error_" + self.name, None)
+
+    @classmethod
+    def _checkfunc(cls, func) -> bool:
+        """check is object callable"""
+        if func is not None and (
+            inspect.isfunction(func)
+            or inspect.ismethod(func)
+            or inspect.iscoroutinefunction(func)
+        ):
+            return True
+
+        return False
+
+    def is_coroutine(self) -> bool:
+        """check whether command is coroutine or not, based by the callbacks"""
+        if self.has_callback():
+            return inspect.iscoroutinefunction(self.callback)
+        if self.has_callback() and self.has_error_callback():
+            return inspect.iscoroutinefunction(
+                self.callback
+            ) and inspect.iscoroutinefunction(self.error_callback)
+
+        # not a coroutine or object does not have command callback
+        return False
+
+    def has_callback(self) -> bool:
+        """check whether callback is exist or not"""
+        return self._checkfunc(self.callback)
+
+    def has_error_callback(self) -> bool:
+        """check whether error callback is exist or not"""
+        return self._checkfunc(self.error_callback)
+
+
+class Command(CommandObject):
+    """main command class inheritance"""
+
+    def __init__(self, name):
+        super().__init__(name=name, object_=self)
+
+
 class CommandWrapperObject:
     """instance of wrapped command object"""
 
@@ -162,71 +227,6 @@ class CommandWrapper:
                 return cmd.process_cmd(*args, attrs=attrs)
 
         raise RunnerError(f"Couln't find command '{cmd.name}'")
-
-
-class CommandObject:
-    """command object container"""
-
-    def __init__(self, object_, name: str = None):
-        self.object = object_
-
-        # try get the command name from the module or class first
-        # if no preset name, use command file name as the command name
-        self.name = getattr(self.object, "name", name)  # type: str
-
-    @property
-    def aliases(self) -> list:
-        """get command aliases"""
-        return getattr(self.object, "__aliases__", [])
-
-    @property
-    def callback(self):
-        """get command callback"""
-        return getattr(self.object, self.name, None)
-
-    @property
-    def error_callback(self):
-        """get command error callback"""
-        return getattr(self.object, "error_" + self.name, None)
-
-    @classmethod
-    def _checkfunc(cls, func) -> bool:
-        """check is object callable"""
-        if func is not None and (
-            inspect.isfunction(func)
-            or inspect.ismethod(func)
-            or inspect.iscoroutinefunction(func)
-        ):
-            return True
-
-        return False
-
-    def is_coroutine(self) -> bool:
-        """check whether command is coroutine or not, based by the callbacks"""
-        if self.has_callback():
-            return inspect.iscoroutinefunction(self.callback)
-        if self.has_callback() and self.has_error_callback():
-            return inspect.iscoroutinefunction(
-                self.callback
-            ) and inspect.iscoroutinefunction(self.error_callback)
-
-        # not a coroutine or object does not have command callback
-        return False
-
-    def has_callback(self) -> bool:
-        """check whether callback is exist or not"""
-        return self._checkfunc(self.callback)
-
-    def has_error_callback(self) -> bool:
-        """check whether error callback is exist or not"""
-        return self._checkfunc(self.error_callback)
-
-
-class Command(CommandObject):
-    """main command class inheritance"""
-
-    def __init__(self, name):
-        super().__init__(name=name, object_=self)
 
 
 class CommandRunner:
