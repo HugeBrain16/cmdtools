@@ -177,7 +177,7 @@ class CommandObject:
     @property
     def aliases(self) -> list:
         """get command aliases"""
-        return getattr(self.object, "_aliases", [])
+        return getattr(self.object, "__aliases__", [])
 
     @property
     def callback(self):
