@@ -32,7 +32,6 @@ release = '2.4.8'
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
-    "myst_parser"
 ]
 
 source_suffix = {
