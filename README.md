@@ -12,7 +12,10 @@
   <a href="https://codecov.io/gh/HugeBrain16/cmdtools">
     <img src="https://codecov.io/gh/HugeBrain16/cmdtools/branch/main/graph/badge.svg?token=mynvRn223H"/>
   </a>
-</div> 
+  <a href='https://cmdtools-py.readthedocs.io/en/latest/?badge=latest'>
+    <img src='https://readthedocs.org/projects/cmdtools-py/badge/?version=latest' alt='Documentation Status' />
+  </a>
+</div>
 
 ## Installation
 
@@ -76,4 +79,4 @@ else:
 PyPI project: https://pypi.org/project/cmdtools-py  
 Source code: https://github.com/HugeBrain16/cmdtools  
 Issues tracker: https://github.com/HugeBrain16/cmdtools/issues  
-Documentation: ...
+Documentation: https://cmdtools-py.readthedocs.io/en/latest
