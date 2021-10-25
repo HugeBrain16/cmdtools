@@ -41,6 +41,7 @@ import inspect
 import logging
 import importlib
 import cmdtools
+from typing import Any, Callable, List, Union, Optional
 
 
 class RunnerError(Exception):
@@ -53,7 +54,7 @@ class RunnerError(Exception):
 class CommandObject:
     """command object container"""
 
-    def __init__(self, object_, name: str = None):
+    def __init__(self, object_: Union[Callable, object], name: str = None):
         self.object = object_
 
         # try get the command name from the module or class first
@@ -61,17 +62,17 @@ class CommandObject:
         self.name = getattr(self.object, "name", name)  # type: str
 
     @property
-    def aliases(self) -> list:
+    def aliases(self) -> List[str]:
         """get command aliases"""
         return getattr(self.object, "__aliases__", [])
 
     @property
-    def callback(self):
+    def callback(self) -> Optional[Callable]:
         """get command callback"""
         return getattr(self.object, self.name, None)
 
     @property
-    def error_callback(self):
+    def error_callback(self) -> Optional[Callable]:
         """get command error callback"""
         return getattr(self.object, "error_" + self.name, None)
 
@@ -111,7 +112,7 @@ class CommandObject:
 class Command(CommandObject):
     """main command class inheritance"""
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(name=name, object_=self)
 
 
@@ -124,7 +125,7 @@ class CommandWrapperObject:
         self.callback = None
         self.error_callback = None
 
-    def error(self, func):
+    def error(self, func: Callable) -> Callable:
         """error handler function wrapper"""
         self.error_callback = func
 
@@ -136,7 +137,7 @@ class CommandWrapperObject:
         return self.callback(*getattr(self, '_args', ()), **getattr(self, '_kwargs', {}))
 
     @classmethod
-    def _checkfunc(cls, func) -> bool:
+    def _checkfunc(cls, func: Callable) -> bool:
         """check is object callable"""
         if func is not None and (
             inspect.isfunction(func)
@@ -170,13 +171,13 @@ class CommandWrapperObject:
 
 class CommandWrapper:
     """wrapper for commands (?)"""
-    def __init__(self, commands: list = None):
+    def __init__(self, commands: List[CommandObject] = None):
         if commands is None:
             commands = []
 
         self.commands = commands
 
-    def command(self, **kwargs):
+    def command(self, **kwargs) -> Optional[CommandWrapperObject]:
         """base decorator for callbacks"""
         def decorator(obj):
             if (inspect.isfunction(obj), inspect.ismethod(obj), inspect.iscoroutinefunction(obj)).count(True) > 0:
@@ -203,7 +204,7 @@ class CommandWrapper:
                 raise TypeError("Cannot assign command for object:", type(obj))
         return decorator
 
-    async def run(self, cmd, attrs: dict = None):
+    async def run(self, cmd: Union[cmdtools.Cmd, cmdtools.AioCmd], attrs: dict = None) -> Any:
         """run command instance"""
         if attrs is None:
             attrs = {}
@@ -235,7 +236,7 @@ class CommandRunner:
     def __init__(self, command: CommandObject):
         self.command = command
 
-    async def run(self, cmd: cmdtools.Cmd, attrs: dict = None):
+    async def run(self, cmd: Union[cmdtools.Cmd, cmdtools.AioCmd], attrs: dict = None) -> Any:
         """run command from parsed command object"""
 
         if not isinstance(cmd, (cmdtools.Cmd, cmdtools.AioCmd)):
@@ -264,10 +265,10 @@ class CommandRunner:
 class CommandRunnerContainer:
     """command runner container class inheritance"""
 
-    def __init__(self, commands: list):
+    def __init__(self, commands: List[CommandObject]):
         self.commands = commands
 
-    async def run(self, cmd: cmdtools.Cmd, attrs: dict = None):
+    async def run(self, cmd: Union[cmdtools.Cmd, cmdtools.AioCmd], attrs: dict = None) -> Any:
         """run command from parsed command object"""
 
         if not isinstance(cmd, (cmdtools.Cmd, cmdtools.AioCmd)):
@@ -306,7 +307,7 @@ class CommandModule(CommandRunnerContainer):
         self.load_module(load_classes=self.load_classes)
         super().__init__(commands=self.commands)
 
-    def load_module(self, load_classes: bool):
+    def load_module(self, load_classes: bool) -> None:
         """load command classes from a module"""
         if self.filename.endswith(".py"):
             modulestr = (
@@ -337,7 +338,7 @@ class CommandDir(CommandRunnerContainer):
         self.load_commands(search_tree=self.search_tree, load_classes=self.load_classes)
         super().__init__(commands=self.commands)
 
-    def load_commands(self, search_tree: bool, load_classes: bool):
+    def load_commands(self, search_tree: bool, load_classes: bool) -> None:
         """load commands from files inside rootdir"""
         dirs = []
         if search_tree:
@@ -368,7 +369,7 @@ class CommandDir(CommandRunnerContainer):
                                     self.commands.append(obj_())
 
 
-def get_command_names(commands: list, get_aliases=False):
+def get_command_names(commands: List[CommandObject], get_aliases=False) -> List[str]:
     """get command names from command list of CommandObject"""
     names = []
     for command in commands:

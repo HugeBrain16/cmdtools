@@ -3,6 +3,7 @@
 import re
 import shlex
 import inspect
+from typing import Any, Callable, Union, List, Dict
 
 _CVT_FLOAT_PTR = re.compile(r"^[-+]?(\d*[.])\d*$")
 _CVT_INT_PTR = re.compile(r"^[-+]?\d+$")
@@ -11,7 +12,7 @@ _CVT_INT_PTR = re.compile(r"^[-+]?\d+$")
 class CmdBaseException(Exception):
     """base exception of this module"""
 
-    def __init__(self, message, *args):
+    def __init__(self, message: str, *args):
         self.message = message
         self.args = args
         super().__init__(self.message)
@@ -27,7 +28,7 @@ class ParsingError(Exception):
 class ProcessError(Exception):
     """raised when error occurred during processing commands without error handler"""
 
-    def __init__(self, message, exception):
+    def __init__(self, message: str, exception: Exception):
         self.message = message
         self.exception = exception
         super().__init__(self.message)
@@ -36,7 +37,7 @@ class ProcessError(Exception):
 class MissingRequiredArgument(CmdBaseException):
     """raised when command's positional argument is missing"""
 
-    def __init__(self, message, param):
+    def __init__(self, message: str, param: str):
         self.message = message
         self.param = param
         super().__init__(self.message)
@@ -45,7 +46,7 @@ class MissingRequiredArgument(CmdBaseException):
 class Parser:
     """string prefix parser"""
 
-    def __init__(self, text, prefix):
+    def __init__(self, text: str, prefix: str):
         self.text = text
         self.index = -1
         self.prefix = prefix
@@ -55,12 +56,12 @@ class Parser:
         if self.text:
             self.parse()
 
-    def shift(self):
+    def shift(self) -> None:
         """shift index to next character"""
         self.index += 1
         self.char = self.text[self.index] if self.index < len(self.text) else None
 
-    def parse(self):
+    def parse(self) -> None:
         """parse prefix and get arguments"""
         self.shift()
         space_count = 0
@@ -80,13 +81,13 @@ class Parser:
 
 class AttrMan:
     """some kind of attributes manager"""
-    def __init__(self, target, **attrs):
+    def __init__(self, target: Union[Callable, object], **attrs):
         self.target = target
         self.attrs = attrs
 
         self.dupe_attrs = {}
 
-    def _save_dupes(self):
+    def _save_dupes(self) -> None:
         """save existing or duplicate attributes"""
         if not inspect.ismethod(self.target):
             for attr in self.attrs:
@@ -97,7 +98,7 @@ class AttrMan:
                 if hasattr(self.target.__self__, attr):
                     self.dupe_attrs.update({attr: getattr(self.target.__self__, attr)})
 
-    def _clear(self):
+    def _clear(self) -> None:
         if not inspect.ismethod(self.target):
             for attr in self.attrs:
                 if hasattr(self.target, attr):
@@ -107,7 +108,7 @@ class AttrMan:
                 if hasattr(self.target.__self__, attr):
                     delattr(self.target.__self__, attr)
 
-    def set(self):
+    def set(self) -> None:
         """set attributes to target object"""
         self._save_dupes()
 
@@ -118,7 +119,7 @@ class AttrMan:
             for attr in self.attrs.items():
                 setattr(self.target.__self__, attr[0], attr[1])
 
-    def reset(self):
+    def reset(self) -> None:
         """reset attributes from target object"""
         self._clear()
 
@@ -133,7 +134,7 @@ class AttrMan:
 class Cmd:
     """main class for parsing commands"""
 
-    def __init__(self, command_string, prefix="/", max_args=0, convert_args=False):
+    def __init__(self, command_string: str, prefix="/", max_args: int = 0, convert_args: bool = False):
         self.name = None
         self.args = []
         self.command_string = command_string
@@ -164,7 +165,7 @@ class Cmd:
             if convert_args:
                 self._cvt_cmd()
 
-    def _get_args_type_char(self, max_args=0):
+    def _get_args_type_char(self, max_args: int = 0) -> List[str]:
         """get command arguments data types in char format"""
         argtype = []
 
@@ -183,7 +184,7 @@ class Cmd:
 
         return argtype
 
-    def _cvt_cmd(self):
+    def _cvt_cmd(self) -> None:
         """evaluate literal arguments"""
         cvt = [(_CVT_FLOAT_PTR, float), (_CVT_INT_PTR, int)]
 
@@ -200,7 +201,7 @@ class Cmd:
                     )
                     break  # has found the correct data type
 
-    def match_args(self, format_match, max_args=0):
+    def match_args(self, format_match: str, max_args: int = 0) -> bool:
         """match argument formats, only works with converted arguments"""
 
         # format example: 'ssf', arguments: ['hell','o',10.0] matched
@@ -221,7 +222,7 @@ class Cmd:
 
         return self._match_args(argtype, format_match)
 
-    def _match_args(self, argtype, format_match):
+    def _match_args(self, argtype: List[str], format_match: str) -> bool:
         """match arguments by arguments data types"""
         matched = 0
         for i, arg_type in enumerate(argtype):
@@ -244,7 +245,7 @@ class Cmd:
 
         return False
 
-    def process_cmd(self, callback, error_callback=None, attrs=None):
+    def process_cmd(self, callback: Callable, error_callback: Callable = None, attrs: Dict[str, Any] = None) -> Any:
         """process command..."""
         if attrs is None:
             attrs = {}
@@ -337,7 +338,7 @@ class Cmd:
 class AioCmd(Cmd):
     """asynchronous instance of Cmd"""
 
-    async def process_cmd(self, callback, error_callback=None, attrs=None):
+    async def process_cmd(self, callback: Callable, error_callback: Callable = None, attrs: Dict[str, Any] = None) -> Any:
         """coroutine process cmd"""
         if attrs is None:
             attrs = {}
