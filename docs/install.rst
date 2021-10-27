@@ -1,8 +1,10 @@
 Install
 =======
 
-| cmdtools requires python 3.7 or later
-| install latest release from Python Package Index
+.. note::
+    cmdtools requires python 3.7 or later
+
+install latest release from Python Package Index
 
 .. code:: sh
 
