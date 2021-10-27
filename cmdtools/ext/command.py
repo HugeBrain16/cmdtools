@@ -298,11 +298,11 @@ class CommandRunnerContainer:
 class CommandModule(CommandRunnerContainer):
     """command module container class"""
 
-    def __init__(self, filename: str, **attrs):
+    def __init__(self, filename: str, *, load_classes: bool = True):
         self.filename = filename
         self.commands = []
 
-        self.load_classes = attrs.get("load_classes", True)
+        self.load_classes = load_classes
 
         self.load_module(load_classes=self.load_classes)
         super().__init__(commands=self.commands)
@@ -329,11 +329,11 @@ class CommandModule(CommandRunnerContainer):
 class CommandDir(CommandRunnerContainer):
     """command directory container class"""
 
-    def __init__(self, rootdir: str, **attrs):
+    def __init__(self, rootdir: str, *, search_tree: bool = False, load_classes: bool = False):
         self.rootdir = rootdir.replace("/", os.sep).replace("\\", os.sep)
         self.commands = []
-        self.search_tree: bool = attrs.get("search_tree", False)
-        self.load_classes: bool = attrs.get("load_classes", False)
+        self.search_tree: bool = search_tree
+        self.load_classes: bool = load_classes
 
         self.load_commands(search_tree=self.search_tree, load_classes=self.load_classes)
         super().__init__(commands=self.commands)
