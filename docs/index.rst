@@ -14,7 +14,7 @@ Welcome to cmdtools's documentation!
    quickstart
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
    :caption: Extensions:
    
    ext/command.rst
