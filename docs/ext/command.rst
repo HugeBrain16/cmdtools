@@ -9,7 +9,7 @@ Examples
 some basic example of the command extension
 
 Running a command struct
-------------------------
+________________________
 
 .. code:: py
 
@@ -51,7 +51,7 @@ Running a command struct
     loop.run_until_complete(main())
 
 Command wrapper
----------------
+_______________
 
 some kind of command container or wrapper
 
@@ -87,12 +87,12 @@ some kind of command container or wrapper
     loop.run_until_complete(main())
 
 Loading commands from file
---------------------------
+__________________________
 
 You can load a single command or even multiple commands from a single file or module
 
 Loading single command from file
---------------------------------
+++++++++++++++++++++++++++++++++
 
 example of a single command file ``ping.py``
 
@@ -139,7 +139,7 @@ and script for loading and running the command
     loop.run_until_complete(main())
 
 Loading multiple commands from a single file
---------------------------------------------
+++++++++++++++++++++++++++++++++++++++++++++
 
 create a command file named ``cool.py`` for example
 
