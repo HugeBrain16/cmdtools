@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cmdtools-py"
-version = "2.4.8"
+version = "2.4.9"
 description = "command text parser and command processor"
 authors = ["HugeBrain16 <joshtuck373@gmail.com>"]
 maintainers = ["HugeBrain16 <joshtuck373@gmail.com>"]
