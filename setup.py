@@ -13,7 +13,7 @@ setuptools.setup(
     license="MIT",
     keywords="command-parser command-processor command cmd cmd-parser",
     url="https://github.com/HugeBrain16/cmdtools",
-    include_package_data=True
+    include_package_data=True,
     packages=["cmdtools", "cmdtools/ext"],
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
