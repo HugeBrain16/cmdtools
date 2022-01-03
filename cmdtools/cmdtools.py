@@ -304,7 +304,7 @@ class Cmd:
             if error_callback is None:
                 raise ProcessError(
                     "an error occurred during processing callback '"
-                    + f"{callback.__name__}()' for command '{self.name}, "
+                    + f"{callback.__name__}()' for command '{self.name}', "
                     + "no error handler callback specified.",
                     exception,
                 ) from exception
@@ -397,7 +397,7 @@ class AioCmd(Cmd):
             if error_callback is None:
                 raise ProcessError(
                     "an error occurred during processing callback '"
-                    + f"{callback.__name__}()' for command '{self.name}, "
+                    + f"{callback.__name__}()' for command '{self.name}', "
                     + "no error handler callback specified.",
                     exception,
                 ) from exception
