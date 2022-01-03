@@ -13,7 +13,6 @@ ________________________
 
 .. code:: py
 
-    import asyncio
     import cmdtools
     from cmdtools.ext.command import Command, CommandRunner
 
@@ -39,16 +38,11 @@ ________________________
     # command struct must be initialized
     runner = CommandRunner(Ping())
     
-    # command container's runner will return a coroutine object
-    # run inside a coroutine function
-    async def main():
-        cmd = cmdtools.Cmd("!ping", prefix='!')
-        
-        if cmd.name:
-            await runner.run(cmd)
+    # create new command instance
+    cmd = cmdtools.Cmd("!ping", prefix='!')
 
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(main())
+    if cmd.name:
+        runner.run(cmd)
 
 Command wrapper
 _______________
@@ -57,7 +51,6 @@ some kind of command container or wrapper
 
 .. code:: py
     
-    import asyncio
     import cmdtools
     from cmdtools.ext.command import Command, CommandWrapper
     
@@ -77,14 +70,10 @@ some kind of command container or wrapper
         def say(self, text):
             print("U sez,", text)
             
-    async def main():
-        cmd = cmdtools.Cmd("!say 'hello world!'", prefix='!')
-        
-        if cmd.name:
-            await wrapper.run(cmd)
-
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(main())
+    cmd = cmdtools.Cmd("!say 'hello world!'", prefix='!')
+    
+    if cmd.name:
+        wrapper.run(cmd)
 
 Loading commands from file
 __________________________
@@ -118,7 +107,6 @@ and script for loading and running the command
 
 .. code:: py
     
-    import asyncio
     import cmdtools
     from cmdtools.ext.command import CommandModule
     
@@ -129,14 +117,10 @@ and script for loading and running the command
     if command.commands:
         print("Command loaded!")
     
-    async def main():
-        cmd = cmdtools.Cmd("!ping", prefix='!')
-        
-        if cmd.name:
-            await command.run(cmd)
-
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(main())
+    cmd = cmdtools.Cmd("!ping", prefix='!')
+    
+    if cmd.name:
+        command.run(cmd)
 
 Loading multiple commands from a single file
 ++++++++++++++++++++++++++++++++++++++++++++
@@ -165,8 +149,7 @@ create a command file named ``cool.py`` for example
 and loader or runner script
 
 .. code:: py
-    
-    import asyncio
+
     import cmdtools
     from cmdtools.ext.command import CommandModule
     
@@ -177,12 +160,8 @@ and loader or runner script
     if command.commands:
         print("Commands loaded!")
     
-    async def main():
-        cmd1 = cmdtools.Cmd("!test1", prefix='!')
-        cmd2 = cmdtools.Cmd("!test2", prefix='!')
-        
-        await command.run(cmd1)
-        await command.run(cmd2)
-
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(main())
+    cmd1 = cmdtools.Cmd("!test1", prefix='!')
+    cmd2 = cmdtools.Cmd("!test2", prefix='!')
+    
+    command.run(cmd1)
+    command.run(cmd2)

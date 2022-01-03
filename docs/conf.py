@@ -22,7 +22,7 @@ copyright = '2021, HugeBrain16'
 author = 'HugeBrain16'
 
 # The full version, including alpha/beta/rc tags
-release = '2.4.9'
+release = '2.5.0'
 
 
 # -- General configuration ---------------------------------------------------
