@@ -3,6 +3,7 @@
 import re
 import shlex
 import inspect
+import asyncio
 from typing import Any, Callable, Union, List, Dict
 
 _CVT_FLOAT_PTR = re.compile(r"^[-+]?(\d*[.])\d*$")
@@ -238,7 +239,7 @@ class Cmd:
 
         return False
 
-    def process_cmd(self, callback: Callable, error_callback: Callable = None, attrs: Dict[str, Any] = None) -> Any:
+    def process_cmd(self, callback: Callable, error_callback: Callable = None, attrs: Dict[str, Any] = None, event_loop: asyncio.BaseEventLoop = None) -> Any:
         """process command..."""
         if attrs is None:
             attrs = {}
@@ -266,6 +267,11 @@ class Cmd:
             ecman.set()
 
         ret = None
+        if isinstance(event_loop, asyncio.BaseEventLoop):
+            loop = event_loop if not event_loop.is_running() else asyncio.new_event_loop()
+        else:
+            loop = asyncio.new_event_loop()
+
         try:
             cargspec = inspect.getfullargspec(callback)
             cparams = cargspec.args
@@ -295,10 +301,18 @@ class Cmd:
                         param=cparams[len(self.args)],
                     )
 
+            is_callback_async = inspect.iscoroutinefunction(callback)
+
             if cargspec.varargs is None:
-                ret = callback(*self.args[: len(cparams)])
+                if is_callback_async:
+                    ret = loop.run_until_complete(callback(*self.args[: len(cparams)]))
+                else:
+                    ret = callback(*self.args[: len(cparams)])
             else:
-                ret = callback(*self.args)
+                if is_callback_async:
+                    ret = loop.run_until_complete(callback(*self.args))
+                else:
+                    ret = callback(*self.args)
 
         except Exception as exception:
             if error_callback is None:
@@ -309,11 +323,17 @@ class Cmd:
                     exception,
                 ) from exception
 
-            error_callback(error=exception)
+            if inspect.iscoroutinefunction(error_callback):
+                loop.run_until_complete(error_callback(error=exception))
+            else:
+                error_callback(error=exception)
 
         cman.reset()
         if ecman is not None:
             ecman.reset()
+
+        if not loop.is_closed():
+            loop.close()
 
         return ret
 
@@ -326,86 +346,3 @@ class Cmd:
         )
 
         return message
-
-
-class AioCmd(Cmd):
-    """asynchronous instance of Cmd"""
-
-    async def process_cmd(self, callback: Callable, error_callback: Callable = None, attrs: Dict[str, Any] = None) -> Any:
-        """coroutine process cmd"""
-        if attrs is None:
-            attrs = {}
-
-        if (
-            inspect.isfunction(callback) is False
-            and inspect.ismethod(callback) is False
-        ):
-            raise TypeError("callback is not a function or method")
-        if (
-            error_callback
-            and inspect.isfunction(error_callback) is False
-            and inspect.ismethod(callback) is False
-        ):
-            raise TypeError("error handler callback is not a function")
-
-        if not isinstance(attrs, dict):
-            raise TypeError("attributes must be in dict object")
-
-        cman = AttrMan(callback, **attrs)
-        ecman = AttrMan(error_callback, **attrs) if error_callback is not None else None
-
-        cman.set()
-        if ecman is not None:
-            ecman.set()
-
-        ret = None
-        try:
-            cargspec = inspect.getfullargspec(callback)
-            cparams = cargspec.args
-            cdefaults = cargspec.defaults
-
-            # remove 'self' or 'cls' from parameters if method
-            if inspect.ismethod(callback):
-                if len(cparams) > 0:
-                    cparams = cparams[1:]
-
-            if cdefaults is None:
-                if len(self.args) < len(cparams):
-                    raise MissingRequiredArgument(
-                        "missing required argument: "
-                        + cparams[len(self.args)],
-                        param=cparams[len(self.args)],
-                    )
-
-            else:
-
-                posargs_length = len(cparams) - len(cdefaults)
-
-                if len(self.args) < posargs_length:
-                    raise MissingRequiredArgument(
-                        "missing required argument: "
-                        + cparams[len(self.args)],
-                        param=cparams[len(self.args)],
-                    )
-
-            if cargspec.varargs is None:
-                ret = await callback(*self.args[: len(cparams)])
-            else:
-                ret = await callback(*self.args)
-
-        except Exception as exception:
-            if error_callback is None:
-                raise ProcessError(
-                    "an error occurred during processing callback '"
-                    + f"{callback.__name__}()' for command '{self.name}', "
-                    + "no error handler callback specified.",
-                    exception,
-                ) from exception
-
-            await error_callback(error=exception)
-
-        cman.reset()
-        if ecman is not None:
-            ecman.reset()
-
-        return ret
