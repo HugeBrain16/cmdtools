@@ -88,18 +88,6 @@ class CommandObject:
 
         return False
 
-    def is_coroutine(self) -> bool:
-        """check whether command is coroutine or not, based by the callbacks"""
-        if self.has_callback():
-            return inspect.iscoroutinefunction(self.callback)
-        if self.has_callback() and self.has_error_callback():
-            return inspect.iscoroutinefunction(
-                self.callback
-            ) and inspect.iscoroutinefunction(self.error_callback)
-
-        # not a coroutine or object does not have command callback
-        return False
-
     def has_callback(self) -> bool:
         """check whether callback is exist or not"""
         return self._checkfunc(self.callback)
@@ -148,18 +136,6 @@ class CommandWrapperObject:
 
         return False
 
-    def is_coroutine(self) -> bool:
-        """check whether command is coroutine or not, based by the callbacks"""
-        if self.has_callback():
-            return inspect.iscoroutinefunction(self.callback)
-        if self.has_callback() and self.has_error_callback():
-            return inspect.iscoroutinefunction(
-                self.callback
-            ) and inspect.iscoroutinefunction(self.error_callback)
-
-        # not a coroutine or object does not have command callback
-        return False
-
     def has_callback(self) -> bool:
         """check whether callback is exist or not"""
         return self._checkfunc(self.callback)
@@ -204,13 +180,13 @@ class CommandWrapper:
                 raise TypeError("Cannot assign command for object:", type(obj))
         return decorator
 
-    async def run(self, cmd: Union[cmdtools.Cmd, cmdtools.AioCmd], attrs: dict = None) -> Any:
+    def run(self, cmd: cmdtools.Cmd, attrs: dict = None) -> Any:
         """run command instance"""
         if attrs is None:
             attrs = {}
 
-        if not isinstance(cmd, (cmdtools.Cmd, cmdtools.AioCmd)):
-            raise TypeError(f"object {type(cmd)} is not a Cmd or AioCmd instance")
+        if not isinstance(cmd, cmdtools.Cmd):
+            raise TypeError(f"object {type(cmd)} is not a Cmd instance")
 
         for command in self.commands:
             if command.name == cmd.name or cmd.name in command.aliases:
@@ -221,9 +197,6 @@ class CommandWrapper:
                     return logging.error("Command name '%s' has no callback", command.name)
                 if command.has_error_callback():
                     args.append(command.error_callback)
-
-                if command.is_coroutine():
-                    return await cmd.process_cmd(*args, attrs=attrs)
 
                 return cmd.process_cmd(*args, attrs=attrs)
 
@@ -236,11 +209,11 @@ class CommandRunner:
     def __init__(self, command: CommandObject):
         self.command = command
 
-    async def run(self, cmd: Union[cmdtools.Cmd, cmdtools.AioCmd], attrs: dict = None) -> Any:
+    def run(self, cmd: cmdtools.Cmd, attrs: dict = None) -> Any:
         """run command from parsed command object"""
 
-        if not isinstance(cmd, (cmdtools.Cmd, cmdtools.AioCmd)):
-            raise TypeError(f"object {type(cmd)} is not a Cmd or AioCmd instance")
+        if not isinstance(cmd, cmdtools.Cmd):
+            raise TypeError(f"object {type(cmd)} is not a Cmd instance")
 
         if attrs is None:
             attrs = {}
@@ -254,9 +227,6 @@ class CommandRunner:
             if self.command.has_error_callback():
                 args.append(self.command.error_callback)
 
-            if self.command.is_coroutine():
-                return await cmd.process_cmd(*args, attrs=attrs)
-
             return cmd.process_cmd(*args, attrs=attrs)
 
         raise RunnerError("Command name is invalid")
@@ -268,11 +238,11 @@ class CommandRunnerContainer:
     def __init__(self, commands: List[CommandObject]):
         self.commands = commands
 
-    async def run(self, cmd: Union[cmdtools.Cmd, cmdtools.AioCmd], attrs: dict = None) -> Any:
+    def run(self, cmd: cmdtools.Cmd, attrs: dict = None) -> Any:
         """run command from parsed command object"""
 
-        if not isinstance(cmd, (cmdtools.Cmd, cmdtools.AioCmd)):
-            raise TypeError(f"object {type(cmd)} is not a Cmd or AioCmd instance")
+        if not isinstance(cmd, cmdtools.Cmd):
+            raise TypeError(f"object {type(cmd)} is not a Cmd instance")
 
         if attrs is None:
             attrs = {}
@@ -286,9 +256,6 @@ class CommandRunnerContainer:
                     return logging.error("Command name '%s' has no callback", command.name)
                 if command.has_error_callback():
                     args.append(command.error_callback)
-
-                if command.is_coroutine():
-                    return await cmd.process_cmd(*args, attrs=attrs)
 
                 return cmd.process_cmd(*args, attrs=attrs)
 
