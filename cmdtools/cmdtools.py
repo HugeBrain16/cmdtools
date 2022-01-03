@@ -169,18 +169,11 @@ class Cmd:
         """get command arguments data types in char format"""
         argtype = []
 
-        if max_args == 0:
-            for arg in self.args[0: len(self.args)]:
-                if not arg:
-                    continue
+        for arg in self.args[0: len(self.args)] if max_args == 0 else self.args[0:max_args]:
+            if not arg:
+                continue
 
-                argtype.append(type(arg).__name__[0])  # get type char
-        else:
-            for arg in self.args[0:max_args]:
-                if not arg:
-                    continue
-
-                argtype.append(type(arg).__name__[0])  # get type char
+            argtype.append(type(arg).__name__[0])  # get type char
 
         return argtype
 
