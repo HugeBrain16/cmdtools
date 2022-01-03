@@ -1,5 +1,14 @@
 # Changelog
 
+## cmdtools v2.5.0
+
+### Changes from commit
+
+- removed `AioCmd` class by @HugeBrain16 [#3b174fa](https://github.com/HugeBrain16/cmdtools/commit/3b174faef6ada243ab4823d98b2eae91ed1d6b18)
+- change run method to sync @HugeBrain16 [#6865df7](https://github.com/HugeBrain16/cmdtools/commit/6865df7db65f900ae4ccc20537d071d8545628f5)
+
+**Full Changelog**: https://github.com/HugeBrain16/cmdtools/compare/2.4.9...2.5.0
+
 ## cmdtools v2.4.9
 
 ### Changes from commit
