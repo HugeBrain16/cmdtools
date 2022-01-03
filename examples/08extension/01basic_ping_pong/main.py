@@ -1,4 +1,3 @@
-import asyncio
 import cmdtools
 from cmdtools.ext import command
 
@@ -12,14 +11,11 @@ class Ping(command.Command):
 	def ping(self):
 		print("pong")
 
-async def main():
-	runner = command.CommandRunner(Ping()) # class must be initialized
+runner = command.CommandRunner(Ping()) # class must be initialized
 
-	try:
-		await runner.run(
-			cmdtools.Cmd("/ping")
-		)
-	except command.RunnerError as e:
-		print(e)
-
-asyncio.run(main())
+try:
+	runner.run(
+		cmdtools.Cmd("/ping")
+	)
+except command.RunnerError as e:
+	print(e)
