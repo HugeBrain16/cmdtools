@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 from cmdtools import utils
 from cmdtools.callback import Attributes, Callback
 
-__all__ = ["Cmd", "Executor"]
+__all__ = ["Cmd", "Executor", "exec"]
 
 
 class Cmd:
