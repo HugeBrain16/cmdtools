@@ -55,12 +55,12 @@ class Executor:
             if self.callback.is_coroutine:
                 if not self.callback.errcal.is_coroutine:
                     raise TypeError(
-                        f"Error callback should be a coroutine function if callback is coroutine"
+                        "Error callback should be a coroutine function if callback is coroutine"
                     )
             elif self.callback.errcall.is_coroutine:
                 if not self.callback.is_coroutine:
                     raise TypeError(
-                        f"Error callback cannot be a coroutine function if callback is not a coroutine function"
+                        "Error callback cannot be a coroutine function if callback is not a coroutine function"
                     )
 
     def exec(self) -> Optional[Any]:
