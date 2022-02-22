@@ -26,7 +26,7 @@ def splitargs(text: str) -> List[str]:
             else:
                 segment += char
         else:
-            if char in "'\"" and segment:
+            if char == quote and segment:
                 result.append(segment)
                 segment = ""
             else:
