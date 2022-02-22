@@ -36,16 +36,16 @@ class Executor:
         command: Cmd,
         callback: Callback,
         *,
-        attributes: Union[Attributes, Dict[str, Any]] = None,
+        attrs: Union[Attributes, Dict[str, Any]] = None,
     ):
         self.command = command
-        if not isinstance(attributes, Attributes):
-            if isinstance(attributes, dict):
-                self.attributes = Attributes(attributes)
+        if not isinstance(attrs, Attributes):
+            if isinstance(attrs, dict):
+                self.attrs = Attributes(attrs)
             else:
-                self.attributes = Attributes()
+                self.attrs = Attributes()
         else:
-            self.attributes = attributes
+            self.attrs = attrs
 
         if not isinstance(callback, Callback):
             raise TypeError(f"{callback!r} is not a Callback type!")
@@ -67,12 +67,12 @@ class Executor:
         result = None
 
         try:
-            context = self.callback.make_context(self.command, self.attributes)
+            context = self.callback.make_context(self.command, self.attrs)
             result = self.callback(context)
         except Exception as exception:
             if self.callback.errcall:
                 error_context = self.callback.errcall.make_context(
-                    self.command, exception, self.attributes
+                    self.command, exception, self.attrs
                 )
                 result = self.callback.errcall(error_context)
             else:
@@ -84,12 +84,12 @@ class Executor:
         result = None
 
         try:
-            context = self.callback.make_context(self.command, self.attributes)
+            context = self.callback.make_context(self.command, self.attrs)
             result = await self.callback(context)
         except Exception as exception:
             if self.callback.errcall:
                 error_context = self.callback.errcall.make_context(
-                    self.command, exception, self.attributes
+                    self.command, exception, self.attrs
                 )
                 result = await self.callback.errcall(error_context)
             else:
@@ -102,9 +102,9 @@ async def exec(
     command: Cmd,
     callback: Callback,
     *,
-    attributes: Union[Attributes, Dict[str, Any]] = None,
+    attrs: Union[Attributes, Dict[str, Any]] = None,
 ):
-    executor = Executor(command, callback, attributes=attributes)
+    executor = Executor(command, callback, attrs=attrs)
 
     if callback.is_coroutine:
         return await executor.exec_coro()
