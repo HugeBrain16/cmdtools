@@ -44,7 +44,7 @@ def error_send(ctx):
       print("Message is required!")
 
 cmd = cmdtools.Cmd('/send hello')
-asyncio.run(cmdtools.exec(cmd, send))
+asyncio.run(cmdtools.execute(cmd, send))
 ```
 
 ## Links
