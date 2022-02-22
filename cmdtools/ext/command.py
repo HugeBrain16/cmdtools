@@ -105,14 +105,14 @@ class Group:
         return decorator
 
     async def run(
-        self, command: Cmd, *, attributes: Union[Attributes, Dict[str, Any]] = None
+        self, command: Cmd, *, attrs: Union[Attributes, Dict[str, Any]] = None
     ):
-        if attributes is None:
-            attributes = {}
+        if attrs is None:
+            attrs = {}
 
         for cmd in self.commands:
             if cmd.name == command.name or command.name in cmd.aliases:
-                executor = Executor(command, cmd.callback, attributes=attributes)
+                executor = Executor(command, cmd.callback, attrs=attrs)
 
                 if cmd.callback.is_coroutine:
                     return await executor.exec_coro()
