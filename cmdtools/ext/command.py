@@ -71,11 +71,11 @@ class GroupWrapper(Command):
         super().__init__(name, aliases)
 
     def __call__(self, *args, **kwargs):
-        return self._callback(*args, **kwargs)
+        return self.callback(*args, **kwargs)
 
     @property
     def error_callback(self) -> Optional[ErrorCallback]:
-        return self._callback.errcall
+        return self.callback.errcall
 
 
 class Group:
