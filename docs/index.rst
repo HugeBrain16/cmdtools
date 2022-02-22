@@ -13,20 +13,6 @@ Welcome to cmdtools's documentation!
    install
    quickstart
 
-.. toctree::
-   :maxdepth: 3
-   :caption: Extensions:
-   
-   ext/command.rst
-   
-.. toctree::
-   :maxdepth: 1
-   :caption: Examples:
-   
-   examples/callback_attributes.rst
-   examples/coroutine_callback.rst
-   examples/default_arguments.rst
-
 Indices and tables
 ==================
 

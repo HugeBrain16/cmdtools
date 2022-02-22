@@ -1,31 +1,18 @@
 import cmdtools
 
 
+@cmdtools.callback.add_option("message")
+def _test_error(ctx: cmdtools.callback.Context):
+    ...
+
+
+@_test_error.error
+def error_test_error(ctx: cmdtools.callback.ErrorContext):
+    if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
+        assert ctx.error.option == "message"
+
+
 def test_error():
-    cmd = cmdtools.Cmd("/say")
-
-    cmd.process_cmd(say, error_say)
-
-
-def say(text):
-    print(text)
-
-
-def error_say(error):
-    if isinstance(error, cmdtools.MissingRequiredArgument):
-        assert error.param == "text", "boo"
-
-
-def test_default_error():
-    cmd = cmdtools.Cmd("/say")
-
-    cmd.process_cmd(default_say, error_default_say)
-
-
-def default_say(text, name="No"):
-    print(f"{name} says: {text}")
-
-
-def error_default_say(error):
-    if isinstance(error, cmdtools.MissingRequiredArgument):
-        assert error.param == "text", "boo"
+    cmd = cmdtools.Cmd("/test_error")
+    executor = cmdtools.Executor(cmd, _test_error)
+    executor.exec()

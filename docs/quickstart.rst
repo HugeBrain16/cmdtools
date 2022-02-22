@@ -26,11 +26,13 @@ callback
 
 .. code:: py
 
+    import asyncio
     import cmdtools
 
-    # define callback for command handler
-    def login(name, password):
-        if name == "admin" and password == "admin":
+    @cmdtools.callback.add_option("name")
+    @cmdtools.callback.add_option("password")
+    def login(ctx):
+        if ctx.options.name == "admin" and ctx.options.password == "admin":
             print("Login success!")
         else:
             print("Invalid login!")
@@ -38,37 +40,59 @@ callback
     cmd = cmdtools.Cmd("!login admin admin", prefix='!')
 
     if cmd.name == "login":
-        # pass `login` callback to processor
-        cmd.process_cmd(login)
+        asyncio.run(cmdtools.exec(cmd, login))
+
+you can execute a command without using an event loop by
+creating your own executor
+
+.. code:: py
+    
+    import cmdtools
+
+    @cmdtools.callback.add_option("name")
+    @cmdtools.callback.add_option("password")
+    def login(ctx):
+        if ctx.options.name == "admin" and ctx.options.password == "admin":
+            print("Login success!")
+        else:
+            print("Invalid login!")
+            
+    cmd = cmdtools.Cmd("!login admin admin", prefix='!')
+
+    if cmd.name == "login":
+        executor = cmdtools.Executor(cmd, login)
+        executor.exec()
 
 Error handling
 --------------
 
-if error occurred during command processing, you can specify an error
-callback to handle error or exception
+if error occurred during command execution, you can specify an error
+callback to handle the error or the exception
 
 .. code:: py
 
+    import asyncio
     import cmdtools
 
-    # `error` parameter must exist!
-    def error_login(error):
+    @cmdtools.callback.add_option("user")
+    @cmdtools.callback.add_option("password")
+    def login(ctx):
+        print("Login success!")
+
+    @login.error
+    def error_login(ctx):
         # check exception instance, in this case it's missing required argument
-        if isinstance(error, cmdtools.MissingRequiredArgument):
-            if error.param == "user":
+        if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
+            if ctx.error.option == "user":
                 print("user is required!")
-            elif error.param == "password":
+            elif ctx.error.option == "password":
                 print("password is required!")
         else:
             # if other error occured, raise the exception
             # otherwise it would be suppressed by the processor
             raise error
 
-    def login(user, password):
-        print("Login success!")
-
     cmd = cmdtools.Cmd("!login admin", prefix='!')
 
     if cmd.name == "login":
-        # pass `login` callback and `error_login` callback to processor
-        cmd.process_cmd(login, error_login)
+        asyncio.run(cmdtools.exec(cmd, login))

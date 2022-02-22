@@ -26,52 +26,25 @@ install latest commit from GitHub
 ```
 pip install git+https://github.com/HugeBrain16/cmdtools.git
 ```
-## Examples
-
-more examples [here](https://github.com/HugeBrain16/cmdtools/tree/main/examples)
 
 ### Basic example
 
 ```py
+import asyncio
 import cmdtools
 
+@cmdtools.callback.add_option("message")
+def send(ctx):
+    print(ctx.options.message)
 
-def ping():
-    print("pong.")
+@send.error
+def error_send(ctx):
+  if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
+    if ctx.error.option == "message":
+      print("Message is required!")
 
-
-cmd = cmdtools.Cmd('/ping')
-cmd.process_cmd(ping)
-```
-  
-### Command with arguments
-
-```py
-import cmdtools
-
-
-def give(name, item_name, item_amount):
-    print(f"You gave {item_amount} {item_name}s to {name}")
-
-
-# surround argument that contains whitespaces with quotes
-# set `convert_args` to `True` to automatically convert numbers argument
-
-# this will raise an exception,
-# if the number of arguments provided is less than the number of positional callback parameters.
-cmd = cmdtools.Cmd('/give Josh "Golden Apple" 10', convert_args=True)
-
-# check for command instance arguments data type.
-# format indicates ['str','str','int'].
-# integer or float can also match string format, and character 'c' if the argument only has 1 digit.
-
-# `max_args` set to 3, check the first 3 arguments, the rest will get ignored, 
-# otherwise if it set to default,
-# it will raise an exception if the number of arguments is not equal to the number of formats
-if cmd.match_args('ssi', max_args=3):
-    cmd.process_cmd(give)
-else:
-    print('Correct Usage: /give <name: [str]> <item-name: [str]> <item-amount: [int]>')
+cmd = cmdtools.Cmd('/send hello')
+asyncio.run(cmdtools.exec(cmd, send))
 ```
 
 ## Links
