@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 from cmdtools import utils
 from cmdtools.callback import Attributes, Callback
 
-__all__ = ["Cmd", "Executor", "exec"]
+__all__ = ["Cmd", "Executor", "execute"]
 
 
 class Cmd:
@@ -98,7 +98,7 @@ class Executor:
         return result
 
 
-async def exec(
+async def execute(
     command: Cmd,
     callback: Callback,
     *,
