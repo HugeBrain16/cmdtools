@@ -98,6 +98,8 @@ class Group:
                 wrapper = GroupWrapper(name or obj.__name__, aliases)
                 wrapper._callback = Callback(obj)
                 self.commands.append(wrapper)
+
+                return wrapper
             return obj
 
         return decorator
