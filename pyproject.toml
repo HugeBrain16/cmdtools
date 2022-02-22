@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cmdtools-py"
-version = "2.5.0"
+version = "3.0.0-dev0"
 description = "command text parser and command processor"
 authors = ["HugeBrain16 <joshtuck373@gmail.com>"]
 maintainers = ["HugeBrain16 <joshtuck373@gmail.com>"]
@@ -11,7 +11,9 @@ repository = "https://github.com/HugeBrain16/cmdtools"
 documentation = "https://cmdtools-py.readthedocs.io/en/latest"
 packages = [
     {include = "cmdtools"},
-    {include = "ext", from = "cmdtools"}
+    {include = "ext", from = "cmdtools"},
+    {include = "callback", from = "cmdtools"},
+    {include = "utils", from = "cmdtools"}
 ]
 keywords = [
     "command-parser",
@@ -21,7 +23,7 @@ keywords = [
     "cmd-parser",
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",

@@ -14,7 +14,12 @@ setuptools.setup(
     keywords="command-parser command-processor command cmd cmd-parser",
     url="https://github.com/HugeBrain16/cmdtools",
     include_package_data=True,
-    packages=["cmdtools", "cmdtools/ext"],
+    packages=[
+        "cmdtools",
+        "cmdtools/ext",
+        "cmdtools/callback",
+        "cmdtools/utils",
+    ],
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
     project_urls = {
@@ -23,7 +28,7 @@ setuptools.setup(
         "Source": "https://github.com/HugeBrain16/cmdtools",
     },
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Intended Audience :: Developers",
