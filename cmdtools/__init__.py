@@ -1,3 +1,4 @@
-from .cmdtools import *
+from cmdtools.base import *
+from cmdtools.callback import *
 
-__version__ = "2.5.0"
+__version__ = "3.0.0-dev0"
