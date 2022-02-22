@@ -1,12 +1,13 @@
-from gc import callbacks
 import unittest
 import cmdtools
+
 
 @cmdtools.callback.callback_init
 def sumcmd(ctx: cmdtools.callback.Context):
     args2int = [int(arg) for arg in ctx.command.args]
-    
+
     return sum(args2int)
+
 
 class TestExec(unittest.TestCase):
     def test_process(self):
