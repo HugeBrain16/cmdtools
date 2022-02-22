@@ -40,7 +40,7 @@ callback
     cmd = cmdtools.Cmd("!login admin admin", prefix='!')
 
     if cmd.name == "login":
-        asyncio.run(cmdtools.exec(cmd, login))
+        asyncio.run(cmdtools.execute(cmd, login))
 
 you can execute a command without using an event loop by
 creating your own executor
@@ -95,4 +95,4 @@ callback to handle the error or the exception
     cmd = cmdtools.Cmd("!login admin", prefix='!')
 
     if cmd.name == "login":
-        asyncio.run(cmdtools.exec(cmd, login))
+        asyncio.run(cmdtools.execute(cmd, login))
