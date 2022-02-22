@@ -44,7 +44,8 @@ class Executor:
                 self.attributes = Attributes(attributes)
             else:
                 self.attributes = Attributes()
-        self.attributes = attributes
+        else:
+            self.attributes = attributes
 
         if not isinstance(callback, Callback):
             raise TypeError(f"{callback!r} is not a Callback type!")
