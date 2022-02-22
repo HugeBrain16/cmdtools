@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'cmdtools'
-copyright = '2021, HugeBrain16'
+copyright = '2021-2022, HugeBrain16'
 author = 'HugeBrain16'
 
 # The full version, including alpha/beta/rc tags
-release = '2.5.0'
+release = '3.0.0-dev0'
 
 
 # -- General configuration ---------------------------------------------------
