@@ -5,6 +5,7 @@ from cmdtools import Cmd, Executor
 from cmdtools.callback import Attributes, Callback, ErrorCallback
 from cmdtools.callback.option import OptionModifier
 
+__all__ = ["Command", "Group"]
 
 class BaseCommand:
     _callback: Callback
