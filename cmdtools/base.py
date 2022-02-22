@@ -98,7 +98,10 @@ class Executor:
 
 
 async def exec(
-    command: Cmd, callback: Callback, *, attributes: Union[Attributes, Dict[str, Any]]
+    command: Cmd,
+    callback: Callback,
+    *,
+    attributes: Union[Attributes, Dict[str, Any]] = None,
 ):
     executor = Executor(command, callback, attributes=attributes)
 
