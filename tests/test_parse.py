@@ -1,5 +1,6 @@
 import unittest
 import cmdtools
+from cmdtools.utils.string import PrefixChecker
 
 
 class TestParse(unittest.TestCase):
@@ -7,21 +8,14 @@ class TestParse(unittest.TestCase):
         cmd = '/say "hello world"'
         cmd = cmdtools.Cmd(cmd)
 
-        self.assertEqual("say", cmd.name, "boo")
-        self.assertIn("hello world", cmd.args, "boo")
+        self.assertEqual("say", cmd.name)
+        self.assertIn("hello world", cmd.args)
 
-    def test_parse_convert(self):
-        cmd = "/sum 504 100.0 .54 10."
-        cmd = cmdtools.Cmd(cmd, convert_args=True)
+    def test_prefix_checker(self):
+        cmd0 = PrefixChecker("!ping", "!")
+        cmd1 = PrefixChecker("b!ping", "b!")
+        cmd2 = PrefixChecker("zu ping", "zu")
 
-        self.assertIsInstance(cmd.args[0], int, "boo")
-        self.assertIsInstance(sum(cmd.args[1:]), float, "boo")
-
-    def test_prefix_parser(self):
-        cmd0 = cmdtools.Parser("!ping", "!")
-        cmd1 = cmdtools.Parser("b!ping", "b!")
-        cmd2 = cmdtools.Parser("zu ping", "zu")
-
-        self.assertEqual(cmd0.args, "ping")
-        self.assertEqual(cmd1.args, "ping")
-        self.assertEqual(cmd2.args, "ping")
+        self.assertEqual(cmd0.strip_prefix, "ping")
+        self.assertEqual(cmd1.strip_prefix, "ping")
+        self.assertEqual(cmd2.strip_prefix, "ping")
