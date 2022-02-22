@@ -37,7 +37,7 @@ class BaseContext:
         self.command = command
 
         if isinstance(attrs, Attributes):
-            self.attrs = Attributes
+            self.attrs = attrs
         elif isinstance(attrs, dict):
             self.attrs = Attributes(attrs)
         else:
