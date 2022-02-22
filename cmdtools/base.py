@@ -95,3 +95,14 @@ class Executor:
                 raise exception
 
         return result
+
+
+async def exec(
+    command: Cmd, callback: Callback, *, attributes: Union[Attributes, Dict[str, Any]]
+):
+    executor = Executor(command, callback, attributes=attributes)
+
+    if callback.is_coroutine:
+        return await executor.exec_coro()
+
+    return executor.exec()
