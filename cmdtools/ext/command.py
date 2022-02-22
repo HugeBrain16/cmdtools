@@ -17,13 +17,10 @@ class BaseCommand:
         self._callback = None
         self._errcall = None
 
-    def __getattr__(self, name: str, fallback=None) -> Any:
-        return getattr(self, name, fallback)
-
     @property
     def callback(self) -> Optional[Callback]:
         if not isinstance(self._callback, Callback):
-            func: Callable = self.__getattr__(self.name)
+            func: Callable = getattr(self, self.name, None)
 
             if inspect.ismethod(func):
                 self._callback = Callback(func)
@@ -34,7 +31,7 @@ class BaseCommand:
     @property
     def error_callback(self) -> Optional[ErrorCallback]:
         if not isinstance(self._errcall, ErrorCallback):
-            func: Callable = self.__getattr__("error_" + self.name)
+            func: Callable = getattr(self, "error_" + self.name)
 
             if inspect.ismethod(func):
                 self._errcall = ErrorCallback(func)
@@ -64,7 +61,7 @@ class Command(BaseCommand):
         if self._aliases:
             return self._aliases
 
-        return self.__getattr__("__aliases__", [])
+        return getattr(self, "__aliases__", [])
 
 
 class GroupWrapper(Command):
