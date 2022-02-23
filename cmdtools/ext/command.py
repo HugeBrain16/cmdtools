@@ -60,6 +60,17 @@ class Container:
 
         self.commands = commands
 
+    def get_names(self, aliases: bool = False) -> List[str]:
+        names = [cmd.name for cmd in self.commands]
+        
+        if aliases:
+            names.extend([cmd.aliases for cmd in self.commands])
+        
+        return names
+        
+    def has_command(self, name: str) -> bool:
+        return name in self.get_names()
+
     async def run(
         self, command: Cmd, *, attrs: Union[Attributes, Dict[str, Any]] = None
     ):
