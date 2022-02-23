@@ -105,14 +105,7 @@ class Callback(BaseCallback):
         super().__init__(func)
 
     def make_context(self, command: Cmd, attrs: Attributes = None) -> Context:
-        ctx_args = []
-        ctx_args.append(command)
-        ctx_args.append(self.options)
-
-        if isinstance(attrs, Attributes):
-            ctx_args.append(attrs)
-
-        return Context(*ctx_args)
+        return Context(command, self.options, attrs)
 
     def error(self, func: Callable) -> ErrorCallback:
         self.errcall = ErrorCallback(func)
