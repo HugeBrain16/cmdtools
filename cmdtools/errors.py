@@ -1,5 +1,6 @@
 __all__ = [
     "NotEnoughArgumentError",
+    "NotFoundError",
 ]
 
 
@@ -18,3 +19,10 @@ class NotEnoughArgumentError(CmdBaseException):
         self.message = message
         self.option = option
         super().__init__(message)
+
+
+class NotFoundError(CmdBaseException):
+    def __init__(self, message: str, name: str = None):
+        self.message = message
+        self.name = name
+        super().__init__(name)
