@@ -23,10 +23,11 @@ class ModuleLoader(Container):
                     if Command in inspect.getmro(obj):
                         self.commands.append(obj())
         else:
+            modname = module.__name__.split(".")[-1]
             wrapper = GroupWrapper(
-                module.__name__, getattr(module, "__aliases__", None)
+                modname, getattr(module, "__aliases__", None)
             )
-            callfunc: Callable = getattr(module, module.__name__, None)
+            callfunc: Callable = getattr(module, modname, None)
 
             if callfunc:
                 wrapper._callback = Callback(callfunc)
