@@ -53,43 +53,12 @@ class Command(BaseCommand):
         return getattr(self, "__aliases__", [])
 
 
-class GroupWrapper(Command):
-    def __init__(self, name: str, aliases: List[str] = None):
-        super().__init__(name, aliases)
-
-    def __call__(self, *args, **kwargs):
-        return self.callback(*args, **kwargs)
-
-    @property
-    def error_callback(self) -> Optional[ErrorCallback]:
-        return self.callback.errcall
-
-
-class Group:
-    def __init__(self, name: str, commands: List[Command] = None):
-        self.name = name
-
-        if commands is None:
+class Container:
+    def __init__(self, commands: List[Command] = None):
+        if not commands:
             commands = []
 
-        self.commands = []
-
-    def command(self, name: str = None, *, aliases: List[str] = None):
-        if aliases is None:
-            aliases = []
-
-        def decorator(obj):
-            if inspect.isclass(obj) and Command in inspect.getmro(obj):
-                self.commands.append(obj())
-            else:
-                wrapper = GroupWrapper(name or obj.__name__, aliases)
-                wrapper._callback = Callback(obj)
-                self.commands.append(wrapper)
-
-                return wrapper
-            return obj
-
-        return decorator
+        self.commands = commands
 
     async def run(
         self, command: Cmd, *, attrs: Union[Attributes, Dict[str, Any]] = None
@@ -107,3 +76,38 @@ class Group:
                 return executor.exec()
 
         raise NotFoundError(f"Command not found: {command.name}", command.name)
+
+
+class GroupWrapper(Command):
+    def __init__(self, name: str, aliases: List[str] = None):
+        super().__init__(name, aliases)
+
+    def __call__(self, *args, **kwargs):
+        return self.callback(*args, **kwargs)
+
+    @property
+    def error_callback(self) -> Optional[ErrorCallback]:
+        return self.callback.errcall
+
+
+class Group(Container):
+    def __init__(self, name: str, commands: List[Command] = None):
+        self.name = name
+        super().__init__(commands)
+
+    def command(self, name: str = None, *, aliases: List[str] = None):
+        if aliases is None:
+            aliases = []
+
+        def decorator(obj):
+            if inspect.isclass(obj) and Command in inspect.getmro(obj):
+                self.commands.append(obj())
+            else:
+                wrapper = GroupWrapper(name or obj.__name__, aliases)
+                wrapper._callback = Callback(obj)
+                self.commands.append(wrapper)
+
+                return wrapper
+            return obj
+
+        return decorator
