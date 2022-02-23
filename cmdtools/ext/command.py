@@ -8,36 +8,25 @@ from cmdtools.callback.option import OptionModifier
 __all__ = ["Command", "Group"]
 
 class BaseCommand:
-    _callback: Callback
-    _errcall: ErrorCallback
+    _callback: Optional[Callback]
 
     def __init__(self, name: str):
         self.name = name
-
         self._callback = None
-        self._errcall = None
 
     @property
     def callback(self) -> Optional[Callback]:
         if not isinstance(self._callback, Callback):
             func: Callable = getattr(self, self.name, None)
+            errfunc: Callable = getattr(self, "error_" + self.name, None)
 
             if inspect.ismethod(func):
                 self._callback = Callback(func)
+                if errfunc:
+                    self._callback.errcall = ErrorCallback(errfunc)
                 return self._callback
         else:
             return self._callback
-
-    @property
-    def error_callback(self) -> Optional[ErrorCallback]:
-        if not isinstance(self._errcall, ErrorCallback):
-            func: Callable = getattr(self, "error_" + self.name)
-
-            if inspect.ismethod(func):
-                self._errcall = ErrorCallback(func)
-                return self._errcall
-        else:
-            return self._errcall
 
     def add_option(
         self,
