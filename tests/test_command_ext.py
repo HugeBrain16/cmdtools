@@ -1,6 +1,6 @@
 import cmdtools
 from unittest import IsolatedAsyncioTestCase
-from cmdtools.ext.command import Group, Command
+from cmdtools.ext.command import Group, Command, Container
 
 test = Group("Test")
 
@@ -41,3 +41,12 @@ class TestCommandExt(IsolatedAsyncioTestCase):
         out = await test.run(cmd)
 
         self.assertEqual(out, "1234")
+
+    async def test_container(self):
+        cont = Container([
+            Command("foo"),
+            Command("bar")
+        ])
+        
+        self.assertTrue(cont.has_command("foo"))
+        self.assertTrue(cont.has_command("bar"))
