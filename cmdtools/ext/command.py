@@ -1,7 +1,7 @@
 import inspect
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from cmdtools import Cmd, Executor
+from cmdtools import Cmd, Executor, NotFoundError
 from cmdtools.callback import Attributes, Callback, ErrorCallback
 from cmdtools.callback.option import OptionModifier
 
@@ -117,4 +117,4 @@ class Group:
 
                 return executor.exec()
 
-        raise NameError(f"Command not found: {command.name}")
+        raise NotFoundError(f"Command not found: {command.name}", command.name)
