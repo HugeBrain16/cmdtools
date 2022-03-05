@@ -111,11 +111,22 @@ class Group(Container):
             aliases = []
 
         def decorator(obj):
+            nonlocal name
+
             if inspect.isclass(obj) and Command in inspect.getmro(obj):
                 self.commands.append(obj())
             else:
-                wrapper = GroupWrapper(name or obj.__name__, aliases)
-                wrapper._callback = Callback(obj)
+                if not name:
+                    if isinstance(obj, Callback):
+                        name = obj.func.__name__
+                    elif isinstance(obj, Callable):
+                        name = obj.__name__
+
+                wrapper = GroupWrapper(name, aliases)
+                if isinstance(obj, Callback):
+                    wrapper._callback = obj
+                else:
+                    wrapper._callback = Callback(obj)
                 self.commands.append(wrapper)
 
                 return wrapper
