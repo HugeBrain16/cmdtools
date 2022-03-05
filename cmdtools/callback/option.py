@@ -1,6 +1,7 @@
 import dataclasses
 import enum
 from typing import Any, List, Optional
+from cmdtools.converter.base import BasicTypes
 
 __all__ = [
     "OptionModifier",
@@ -17,6 +18,7 @@ class Option:
     name: str
     value: str
     modifier: OptionModifier = OptionModifier.NoModifier
+    type: BasicTypes = str
 
 
 class Options:
@@ -49,6 +51,7 @@ class Options:
         default: Any = None,
         modifier: OptionModifier = OptionModifier.NoModifier,
         append: bool = False,
+        type: BasicTypes = str,
     ):
         option = self.has_option(name)
 
@@ -57,6 +60,7 @@ class Options:
             option_args.append(name)
             option_args.append(default)
             option_args.append(modifier)
+            option_args.append(type)
 
             if not append:
                 self.options.insert(0, Option(*option_args))

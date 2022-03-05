@@ -5,7 +5,8 @@ import typing
 from typing import Any, Callable, Dict, Optional, Union
 
 from cmdtools.callback.option import OptionModifier, Options
-from cmdtools.errors import NotEnoughArgumentError
+from cmdtools.converter.base import BasicTypes
+from cmdtools.errors import NotEnoughArgumentError, ConversionError
 
 if typing.TYPE_CHECKING:
     from cmdtools import Cmd
@@ -62,10 +63,20 @@ class Context(BaseContext):
 
         for idx, option in enumerate(self.options.options):
             if idx < len(self.command.args):
+                converter = self.command.converter(self.command.args[idx])
+
                 if option.modifier is OptionModifier.ConsumeRest:
                     option.value = " ".join(self.command.args[idx:])
                 else:
-                    option.value = self.command.args[idx]
+                    try:
+                        converted = converter.convert(option.type)
+                    except (ValueError, TypeError):
+                        raise ConversionError(f"Could not convert {option.value!r} into {option.type}", option.name)
+
+                    if converted:
+                        option.value = converted
+                    else:
+                        option.value = converter.value
 
             if option.value is None:
                 raise NotEnoughArgumentError(
@@ -121,13 +132,14 @@ def add_option(
     *,
     default: Any = None,
     modifier: OptionModifier = OptionModifier.NoModifier,
+    type: BasicTypes = str,
 ):
     def decorator(obj):
         if isinstance(obj, Callback):
-            obj.options.add(name, default, modifier)
+            obj.options.add(name, default, modifier, type=type)
         elif isinstance(obj, Callable):
             obj = Callback(obj)
-            obj.options.add(name, default, modifier)
+            obj.options.add(name, default, modifier, type=type)
         else:
             raise TypeError(f"Cannot add option to object {obj!r}")
 
