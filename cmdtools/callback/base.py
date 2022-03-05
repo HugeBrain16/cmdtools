@@ -6,7 +6,6 @@ from typing import Any, Callable, Dict, Optional, Union
 
 from cmdtools.callback.option import OptionModifier, Options
 from cmdtools.converter.base import BasicTypes
-from cmdtools.converter import Converter
 from cmdtools.errors import NotEnoughArgumentError, ConversionError
 
 if typing.TYPE_CHECKING:
