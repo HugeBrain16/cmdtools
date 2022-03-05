@@ -4,14 +4,16 @@ from typing import Any, Dict, List, Optional, Union
 
 from cmdtools import utils
 from cmdtools.callback import Attributes, Callback
+from cmdtools.converter.converter import Converter
 
 __all__ = ["Cmd", "Executor", "execute"]
 
 
 class Cmd:
-    def __init__(self, text: str, prefix: str = "/"):
+    def __init__(self, text: str, prefix: str = "/", *, converter: Converter = Converter):
         self.text = text
         self.prefix = utils.string.PrefixChecker(text, prefix)
+        self.converter = converter
 
     @property
     def _args(self) -> Optional[List[str]]:
