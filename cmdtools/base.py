@@ -17,7 +17,10 @@ class Cmd:
 
     @property
     def _args(self) -> Optional[List[str]]:
-        return utils.string.splitargs(self.prefix.strip_prefix)
+        if self.prefix.strip_prefix is not None:
+            return utils.string.splitargs(self.prefix.strip_prefix)
+
+        return []
 
     @property
     def args(self) -> Optional[List[str]]:
