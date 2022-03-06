@@ -58,7 +58,7 @@ class Executor:
 
         if self.callback.errcall:
             if self.callback.is_coroutine:
-                if not self.callback.errcal.is_coroutine:
+                if not self.callback.errcall.is_coroutine:
                     raise TypeError(
                         "Error callback should be a coroutine function if callback is coroutine"
                     )
