@@ -53,6 +53,7 @@ class Iter(abc.ABC):
     text : str
         The string to iterate.
     """
+
     def __init__(self, text: str):
         self.text = text
 
@@ -87,6 +88,7 @@ class PrefixChecker(Iter):
     prefix : str
         The prefix.
     """
+
     is_valid: bool
 
     def __init__(self, text: str, prefix: str):

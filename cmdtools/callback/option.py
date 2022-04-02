@@ -16,6 +16,7 @@ class OptionModifier(enum.Enum):
     ConsumeRest
         Consume the rest of the arguments in the command
     """
+
     NoModifier = "no_modifier"
     ConsumeRest = "consume_rest"
 
@@ -36,6 +37,7 @@ class Option:
     type : BasicType
         Convert the value to specified type.
     """
+
     name: str
     value: str
     modifier: OptionModifier = OptionModifier.NoModifier
@@ -50,6 +52,7 @@ class Options:
     options : List[Option]
         List of options to store.
     """
+
     def __init__(self, options: List[Option] = None):
         if options is None:
             self.options = []

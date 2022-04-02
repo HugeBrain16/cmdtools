@@ -18,6 +18,7 @@ class IntConverter(BaseConverter):
     value : BasicTypes
         The value to convert
     """
+
     def get_int(self) -> Optional[int]:
         result = None
 
@@ -39,6 +40,7 @@ class FloatConverter(BaseConverter):
     value : BasicTypes
         The value to convert
     """
+
     def get_float(self) -> Optional[float]:
         result = None
 
@@ -54,12 +56,13 @@ class FloatConverter(BaseConverter):
 
 class BoolConverter(BaseConverter):
     """BasicType to bool converter
-    
+
     Parameters
     ----------
     value : BasicTypes
         The value to convert
     """
+
     def get_bool(self) -> Optional[float]:
         result = None
 
@@ -83,12 +86,13 @@ class BoolConverter(BaseConverter):
 
 class StringConverter(BaseConverter):
     """BasicType to string converter
-    
+
     Parameters
     ----------
     value : BasicTypes
         The value to convert
     """
+
     def get_str(self) -> str:
         return str(self.value)
 
@@ -106,6 +110,7 @@ class Converter(
     value : BasicTypes
         The value to convert
     """
+
     def __init__(self, value: BasicTypes):
         super().__init__(value)
 

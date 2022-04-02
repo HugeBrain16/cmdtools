@@ -25,12 +25,13 @@ __all__ = [
 class Attributes:
     """Some sort of container to pass some objects
     that cannot be specified from the command argument.
-    
+
     Parameters
     ----------
     attrs : dict
         A dictionary containing any objects.
     """
+
     def __init__(self, attrs: Dict[str, Any] = None):
         if attrs is None:
             self.attrs = {}
@@ -43,6 +44,7 @@ class Attributes:
 
 class BaseContext:
     """The base class for creating a context."""
+
     def __init__(self, command: Cmd, attrs: Union[Attributes, Dict[str, Any]] = None):
         self.command = command
 
@@ -57,7 +59,7 @@ class BaseContext:
 class Context(BaseContext):
     """A context to pass to a Callback when
     the callback gets called by an executor.
-    
+
     Parameters
     ----------
     command : Cmd
@@ -66,12 +68,13 @@ class Context(BaseContext):
         The specified options from the callback.
     attrs : Attributes
         The specified attributes from the callback.
-        
+
     Raises
     ------
     ConversionError
         If converter fails to convert the value of an option.
     """
+
     def __init__(
         self,
         command: Cmd,
@@ -99,7 +102,10 @@ class Context(BaseContext):
                         # Converts the value of an option according to the type.
                         converted = converter.convert(option.type)
                     except (ValueError, TypeError):
-                        raise ConversionError(f"Could not convert {option.value!r} into {option.type}", option.name)
+                        raise ConversionError(
+                            f"Could not convert {option.value!r} into {option.type}",
+                            option.name,
+                        )
 
                     # set the value to the converted value if successfully converted,
                     # otherwise, set it to the old value
@@ -118,6 +124,7 @@ class Context(BaseContext):
 
 class ErrorContext(BaseContext):
     """A context to pass to an error callback."""
+
     def __init__(self, command: Cmd, error: Exception, attrs: Attributes = None):
         self.error = error
         super().__init__(command, attrs)
@@ -125,6 +132,7 @@ class ErrorContext(BaseContext):
 
 class BaseCallback:
     """The base class for creating a callback."""
+
     def __init__(self, func: Callable):
         self.func = func
 
@@ -139,6 +147,7 @@ class BaseCallback:
 
 class ErrorCallback(BaseCallback):
     """A callback used for handling errors or exceptions."""
+
     def make_context(self, command: Cmd, error: Exception, attrs: Attributes = None):
         """Create a new context based on a command object,
         and the error that occurs.
@@ -167,6 +176,7 @@ class Callback(BaseCallback):
     func : Callable
         A function to call.
     """
+
     def __init__(self, func: Callable):
         self.options = Options()
         self.errcall = None
@@ -208,12 +218,12 @@ class Callback(BaseCallback):
 
 def callback_init(func: Callable) -> Callback:
     """Wraps a function to a Callback.
-    
+
     Parameters
     ----------
     func : Callable
         The function to wrap.
-        
+
     Returns
     -------
     A Callback object.
@@ -229,7 +239,7 @@ def add_option(
     type: BasicTypes = str,
 ):
     """A callback wrapper for adding an option.
-    
+
     Parameters
     ----------
     name : str
@@ -247,6 +257,7 @@ def add_option(
     TypeError
         If the wrapped object is not a callback object.
     """
+
     def decorator(obj):
         if isinstance(obj, Callback):
             obj.options.add(name, default, modifier, type=type)

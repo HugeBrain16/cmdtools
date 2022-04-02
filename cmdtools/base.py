@@ -35,7 +35,9 @@ class Cmd:
 
     """
 
-    def __init__(self, text: str, prefix: str = "/", *, converter: Converter = Converter):
+    def __init__(
+        self, text: str, prefix: str = "/", *, converter: Converter = Converter
+    ):
         self.text = text
         self.prefix = utils.string.PrefixChecker(text, prefix)
         self.converter = converter
@@ -64,7 +66,7 @@ class Cmd:
 
 class Executor:
     """A class for creating custom command executor
-    
+
     Parameters
     ----------
     command
@@ -132,11 +134,11 @@ class Executor:
 
     def exec(self) -> Optional[Any]:
         """Executes the command passed in constructor
-        
+
         Returns
         -------
         Anything retured in the callback.
-        
+
         Raises
         ------
         Exception
@@ -162,11 +164,11 @@ class Executor:
     async def exec_coro(self) -> Optional[Any]:
         """Executes the command passed in constructor
         if the callback is coroutine.
-        
+
         Returns
         -------
         Anything returned in the callback.
-        
+
         Raises
         ------
         Exception
@@ -197,7 +199,7 @@ async def execute(
     attrs: Union[Attributes, Dict[str, Any]] = None,
 ):
     """A simple executor using `Executor` class
-    
+
     Parameters
     ----------
     command
@@ -210,7 +212,7 @@ async def execute(
     Returns
     -------
     Anything retured in the callback.
-    
+
     Raises
     ------
     Exception

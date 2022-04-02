@@ -7,8 +7,10 @@ from cmdtools.callback.option import OptionModifier
 
 __all__ = ["Command", "Group"]
 
+
 class BaseCommand:
     """Base class of command struct or class."""
+
     _callback: Optional[Callback]
 
     def __init__(self, name: str):
@@ -38,7 +40,7 @@ class BaseCommand:
         modifier: OptionModifier = OptionModifier.NoModifier,
     ):
         """Adds an option to callback.
-    
+
         Parameters
         ----------
         name : str
@@ -62,6 +64,7 @@ class Command(BaseCommand):
     aliases : List[str]
         The aliases of the command.
     """
+
     def __init__(self, name: str, aliases: List[str] = None):
         if aliases is None:
             aliases = []
@@ -85,6 +88,7 @@ class Container:
     commands : List[Command]
         List of command struct or class to store.
     """
+
     def __init__(self, commands: List[Command] = None):
         if not commands:
             commands = []
@@ -100,12 +104,12 @@ class Container:
             Includes the commands aliases.
         """
         names = [cmd.name for cmd in self.commands]
-        
+
         if aliases:
             names.extend([cmd.aliases for cmd in self.commands])
-        
+
         return names
-        
+
     def has_command(self, name: str) -> bool:
         """Checks if the container has a command.
 
@@ -158,6 +162,7 @@ class GroupWrapper(Command):
     aliases : List[str]
         The command aliases.
     """
+
     def __init__(self, name: str, aliases: List[str] = None):
         super().__init__(name, aliases)
 
@@ -180,6 +185,7 @@ class Group(Container):
         List of command struct or class
         to store to the container.
     """
+
     def __init__(self, name: str, commands: List[Command] = None):
         self.name = name
         super().__init__(commands)
