@@ -95,23 +95,23 @@ class Options:
         append: bool = False,
         type: BasicTypes = str,
     ):
-    """Store or add an option to container.
+        """Store or add an option to container.
 
-    Parameters
-    ----------
-    name : str
-        The option name.
-    default : str
-        Default value if argument is not specified.
-    modifier : OptionModifier
-        The option modifier,
-        some modifier used to modify the value.
-    append : bool
-        If true use append method to store an option,
-        else use insert from the first index (0).
-    type : BasicType
-        Convert the value to specified type.
-    """
+        Parameters
+        ----------
+        name : str
+            The option name.
+        default : str
+            Default value if argument is not specified.
+        modifier : OptionModifier
+            The option modifier,
+            some modifier used to modify the value.
+        append : bool
+            If true use append method to store an option,
+            else use insert from the first index (0).
+        type : BasicType
+            Convert the value to specified type.
+        """
         option = self.has_option(name)
 
         if not option:
