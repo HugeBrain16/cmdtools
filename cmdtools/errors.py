@@ -31,8 +31,7 @@ class NotFoundError(CmdBaseException):
 
 class ConversionError(CmdBaseException):
     """raises when failed to convert an object to a specific type"""
-    
+
     def __init__(self, message: str, option: str):
         self.option = option
         super().__init__(message)
-

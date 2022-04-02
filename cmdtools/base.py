@@ -10,7 +10,34 @@ __all__ = ["Cmd", "Executor", "execute"]
 
 
 class Cmd:
-    def __init__(self, text: str, prefix: str = "/", *, converter: Converter = Converter):
+    """A base class for creating a command object.
+
+    Parameters
+    ----------
+    text : str
+        Command text to parse. ex: `'/ping 8.8.8.8'`
+    prefix : str
+        The prefix of the command
+    converter
+        Converter for arguments.
+
+    Examples
+    --------
+    Creating a basic command object::
+
+        from cmdtools import Cmd
+
+        x = Cmd("/test")
+
+        if x.name == "test":
+            print("test ok!")
+
+
+    """
+
+    def __init__(
+        self, text: str, prefix: str = "/", *, converter: Converter = Converter
+    ):
         self.text = text
         self.prefix = utils.string.PrefixChecker(text, prefix)
         self.converter = converter
@@ -24,6 +51,7 @@ class Cmd:
 
     @property
     def args(self) -> Optional[List[str]]:
+        """List of arguments in the command"""
         if len(self._args) > 1:
             return self._args[1:]
 
@@ -31,11 +59,47 @@ class Cmd:
 
     @property
     def name(self) -> Optional[str]:
+        """The name of the command"""
         if len(self._args) >= 1:
             return self._args[0]
 
 
 class Executor:
+    """A class for creating custom command executor
+
+    Parameters
+    ----------
+    command
+        The command object to execute.
+    callback
+        The callback that will be called when command is executed.
+    attrs
+        Attributes to pass to the callback context.
+
+    Examples
+    --------
+    Executing a command with a custom executor::
+
+        from cmdtools import Cmd, Executor
+        from cmdtools.callback import callback_init
+
+        cmd = Cmd("/somecmd")
+
+        @callback_init
+        def some_callback(ctx):
+            print("Wicked insane!")
+
+        x = Executor(cmd, some_callback)
+        x.exec()
+
+
+    Raises
+    ------
+    TypeError
+        If callback is not a `Callback` instance or,
+        if callback is coroutine but the error callback is not, or vice versa.
+    """
+
     def __init__(
         self,
         command: Cmd,
@@ -69,6 +133,18 @@ class Executor:
                     )
 
     def exec(self) -> Optional[Any]:
+        """Executes the command passed in constructor
+
+        Returns
+        -------
+        Anything retured in the callback.
+
+        Raises
+        ------
+        Exception
+            Any exception raised during execution
+            if error callback is not set.
+        """
         result = None
 
         try:
@@ -86,6 +162,19 @@ class Executor:
         return result
 
     async def exec_coro(self) -> Optional[Any]:
+        """Executes the command passed in constructor
+        if the callback is coroutine.
+
+        Returns
+        -------
+        Anything returned in the callback.
+
+        Raises
+        ------
+        Exception
+            Any exception raised during execution
+            if error callback is not set.
+        """
         result = None
 
         try:
@@ -109,6 +198,30 @@ async def execute(
     *,
     attrs: Union[Attributes, Dict[str, Any]] = None,
 ):
+    """A simple executor using `Executor` class
+
+    Parameters
+    ----------
+    command
+        The command object to execute.
+    callback
+        The callback that will be called when command is executed.
+    attrs
+        Attributes to pass to the callback context.
+
+    Returns
+    -------
+    Anything retured in the callback.
+
+    Raises
+    ------
+    Exception
+        Any exception raised during execution
+        if error callback is not set.
+    TypeError
+        If callback is not a `Callback` instance or,
+        if callback is coroutine but the error callback is not, or vice versa.
+    """
     executor = Executor(command, callback, attrs=attrs)
 
     if callback.is_coroutine:

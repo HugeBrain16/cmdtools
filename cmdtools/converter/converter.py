@@ -11,6 +11,14 @@ __all__ = [
 
 
 class IntConverter(BaseConverter):
+    """BasicType to int converter
+
+    Parameters
+    ----------
+    value : BasicTypes
+        The value to convert
+    """
+
     def get_int(self) -> Optional[int]:
         result = None
 
@@ -25,6 +33,14 @@ class IntConverter(BaseConverter):
 
 
 class FloatConverter(BaseConverter):
+    """BasicType to float converter
+
+    Parameters
+    ----------
+    value : BasicTypes
+        The value to convert
+    """
+
     def get_float(self) -> Optional[float]:
         result = None
 
@@ -39,6 +55,14 @@ class FloatConverter(BaseConverter):
 
 
 class BoolConverter(BaseConverter):
+    """BasicType to bool converter
+
+    Parameters
+    ----------
+    value : BasicTypes
+        The value to convert
+    """
+
     def get_bool(self) -> Optional[float]:
         result = None
 
@@ -61,6 +85,14 @@ class BoolConverter(BaseConverter):
 
 
 class StringConverter(BaseConverter):
+    """BasicType to string converter
+
+    Parameters
+    ----------
+    value : BasicTypes
+        The value to convert
+    """
+
     def get_str(self) -> str:
         return str(self.value)
 
@@ -71,10 +103,25 @@ class Converter(
     BoolConverter,
     StringConverter,
 ):
+    """BasicType converter.
+
+    Parameters
+    ----------
+    value : BasicTypes
+        The value to convert
+    """
+
     def __init__(self, value: BasicTypes):
         super().__init__(value)
 
     def convert(self, type: BasicTypes = str):
+        """Converts BasicType to a specific type
+
+        Parameters
+        ----------
+        type : BasicTypes
+            The type that the value should be converted to
+        """
         if type is int:
             return self.get_int()
         elif type is float:

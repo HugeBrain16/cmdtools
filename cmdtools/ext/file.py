@@ -9,6 +9,22 @@ from cmdtools.ext.command import Command, Container, GroupWrapper
 
 
 class ModuleLoader(Container):
+    """A command module loader class.
+
+    Parameters
+    ----------
+    filename : str
+        The command module file to load.
+    load_classes : bool
+        Loads command classes in the module if true,
+        if false just load the whole file as a command module.
+
+    Raises
+    ------
+    NameError
+        If not loading command classes, and callback is not set.
+    """
+
     def __init__(self, filename: str, *, load_classes: bool = True):
         self.filename = filename
         super().__init__()
@@ -24,9 +40,7 @@ class ModuleLoader(Container):
                         self.commands.append(obj())
         else:
             modname = module.__name__.split(".")[-1]
-            wrapper = GroupWrapper(
-                modname, getattr(module, "__aliases__", None)
-            )
+            wrapper = GroupWrapper(modname, getattr(module, "__aliases__", None))
             callfunc: Callable = getattr(module, modname, None)
 
             if callfunc:
