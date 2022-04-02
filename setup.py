@@ -28,7 +28,7 @@ setuptools.setup(
         "Source": "https://github.com/HugeBrain16/cmdtools",
     },
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Intended Audience :: Developers",

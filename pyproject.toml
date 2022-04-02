@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cmdtools-py"
-version = "3.0.0-dev8"
+version = "3.0.0"
 description = "command text parser and command processor"
 authors = ["HugeBrain16 <joshtuck373@gmail.com>"]
 maintainers = ["HugeBrain16 <joshtuck373@gmail.com>"]
@@ -22,7 +22,7 @@ keywords = [
     "cmd-parser",
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
