@@ -9,12 +9,33 @@ __all__ = [
 
 
 class OptionModifier(enum.Enum):
+    """An option modifier.
+
+    NoModifier
+        doesn't do anything to the option value.
+    ConsumeRest
+        Consume the rest of the arguments in the command
+    """
     NoModifier = "no_modifier"
     ConsumeRest = "consume_rest"
 
 
 @dataclasses.dataclass
 class Option:
+    """An option dataclass.
+
+    Parameters
+    ----------
+    name : str
+        The name of the option.
+    value : str
+        The value of the option.
+    modifier : OptionModifier
+        The option modifier,
+        some modifier used to modify the value.
+    type : BasicType
+        Convert the value to specified type.
+    """
     name: str
     value: str
     modifier: OptionModifier = OptionModifier.NoModifier
@@ -22,6 +43,13 @@ class Option:
 
 
 class Options:
+    """An option container class.
+
+    Parameters
+    ----------
+    options : List[Option]
+        List of options to store.
+    """
     def __init__(self, options: List[Option] = None):
         if options is None:
             self.options = []
@@ -35,11 +63,25 @@ class Options:
             return option.value
 
     def get(self, name: str) -> Option:
+        """Gets an option by name.
+
+        Parameters
+        ----------
+        name : str
+            The name of the option.
+        """
         for option in self.options:
             if option.name == name:
                 return option
 
     def has_option(self, name: str) -> Optional[int]:
+        """Check if the container has an option.
+
+        Parameters
+        ----------
+        name : str
+            The name of the option.
+        """
         if self.get(name):
             return True
 
@@ -53,6 +95,23 @@ class Options:
         append: bool = False,
         type: BasicTypes = str,
     ):
+    """Store or add an option to container.
+
+    Parameters
+    ----------
+    name : str
+        The option name.
+    default : str
+        Default value if argument is not specified.
+    modifier : OptionModifier
+        The option modifier,
+        some modifier used to modify the value.
+    append : bool
+        If true use append method to store an option,
+        else use insert from the first index (0).
+    type : BasicType
+        Convert the value to specified type.
+    """
         option = self.has_option(name)
 
         if not option:

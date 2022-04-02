@@ -8,6 +8,7 @@ from cmdtools.callback.option import OptionModifier
 __all__ = ["Command", "Group"]
 
 class BaseCommand:
+    """Base class of command struct or class."""
     _callback: Optional[Callback]
 
     def __init__(self, name: str):
@@ -16,6 +17,7 @@ class BaseCommand:
 
     @property
     def callback(self) -> Optional[Callback]:
+        """returns the callback of the command struct or class if set."""
         if not isinstance(self._callback, Callback):
             func: Callable = getattr(self, self.name, None)
             errfunc: Callable = getattr(self, "error_" + self.name, None)
@@ -35,10 +37,31 @@ class BaseCommand:
         default: Any = None,
         modifier: OptionModifier = OptionModifier.NoModifier,
     ):
+        """Adds an option to callback.
+    
+        Parameters
+        ----------
+        name : str
+            The option name.
+        default : str
+            Default value if argument is not specified.
+        modifier : OptionModifier
+            The option modifier,
+            some modifier used to modify the value.
+        """
         self.callback.options.add(name, default, modifier, append=True)
 
 
 class Command(BaseCommand):
+    """A command struct or class.
+
+    Parameters
+    ----------
+    name : str
+        The name of the command.
+    aliases : List[str]
+        The aliases of the command.
+    """
     def __init__(self, name: str, aliases: List[str] = None):
         if aliases is None:
             aliases = []
@@ -47,6 +70,7 @@ class Command(BaseCommand):
 
     @property
     def aliases(self) -> List[str]:
+        """gets the command aliases if set."""
         if self._aliases:
             return self._aliases
 
@@ -54,6 +78,13 @@ class Command(BaseCommand):
 
 
 class Container:
+    """Command struct or class container class.
+
+    Parameters
+    ----------
+    commands : List[Command]
+        List of command struct or class to store.
+    """
     def __init__(self, commands: List[Command] = None):
         if not commands:
             commands = []
@@ -61,6 +92,13 @@ class Container:
         self.commands = commands
 
     def get_names(self, aliases: bool = False) -> List[str]:
+        """gets all command names stored in the container.
+
+        Parameters
+        ----------
+        aliases : bool
+            Includes the commands aliases.
+        """
         names = [cmd.name for cmd in self.commands]
         
         if aliases:
@@ -69,11 +107,32 @@ class Container:
         return names
         
     def has_command(self, name: str) -> bool:
+        """Checks if the container has a command.
+
+        Parameters
+        ----------
+        name : str
+            The command name.
+        """
         return name in self.get_names()
 
     async def run(
         self, command: Cmd, *, attrs: Union[Attributes, Dict[str, Any]] = None
     ):
+        """Executes a command in container by the command object.
+
+        Parameters
+        ----------
+        command : Cmd
+            The command object.
+        attrs : dict or Attributes
+            Attributes to pass to the callback context.
+
+        Raises
+        ------
+        NotFoundError
+            If the specified command is not found in the container.
+        """
         if attrs is None:
             attrs = {}
 
@@ -90,6 +149,15 @@ class Container:
 
 
 class GroupWrapper(Command):
+    """A callback wrapper for functions.
+
+    Parameters
+    ----------
+    name : str
+        The command name.
+    aliases : List[str]
+        The command aliases.
+    """
     def __init__(self, name: str, aliases: List[str] = None):
         super().__init__(name, aliases)
 
@@ -102,11 +170,30 @@ class GroupWrapper(Command):
 
 
 class Group(Container):
+    """A group based container class.
+
+    Parameters
+    ----------
+    name : str
+        The group name
+    commands : List[Command]
+        List of command struct or class
+        to store to the container.
+    """
     def __init__(self, name: str, commands: List[Command] = None):
         self.name = name
         super().__init__(commands)
 
     def command(self, name: str = None, *, aliases: List[str] = None):
+        """stores a command struct or class to the container.
+
+        Parameters
+        ----------
+        name : str
+            The name of the command
+        aliases : List[str]
+            The command aliases.
+        """
         if aliases is None:
             aliases = []
 

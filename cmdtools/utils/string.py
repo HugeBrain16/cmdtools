@@ -9,6 +9,13 @@ __all__ = [
 
 
 def splitargs(text: str) -> List[str]:
+    """splits string by space and quotes.
+
+    Parameters
+    ----------
+    text : str
+        The string to split.
+    """
     result: List[str] = []
 
     in_quote: bool = False
@@ -39,6 +46,13 @@ def splitargs(text: str) -> List[str]:
 
 
 class Iter(abc.ABC):
+    """base string iterator class.
+
+    Parameters
+    ----------
+    text : str
+        The string to iterate.
+    """
     def __init__(self, text: str):
         self.text = text
 
@@ -64,6 +78,15 @@ class Iter(abc.ABC):
 
 
 class PrefixChecker(Iter):
+    """Checks if prefix is valid.
+
+    Parameters
+    ----------
+    text : str
+        The string to check
+    prefix : str
+        The prefix.
+    """
     is_valid: bool
 
     def __init__(self, text: str, prefix: str):
@@ -73,6 +96,7 @@ class PrefixChecker(Iter):
 
     @property
     def strip_prefix(self):
+        """removes prefix from the original string."""
         if self.is_valid:
             return self.text[self._index :].lstrip()
 
