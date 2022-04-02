@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from cmdtools import Cmd, Executor, NotFoundError
 from cmdtools.callback import Attributes, Callback, ErrorCallback
 from cmdtools.callback.option import OptionModifier
+from cmdtools.converter.base import BasicTypes
 
 __all__ = ["Command", "Group"]
 
@@ -38,6 +39,7 @@ class BaseCommand:
         *,
         default: Any = None,
         modifier: OptionModifier = OptionModifier.NoModifier,
+        type: BasicTypes = str,
     ):
         """Adds an option to callback.
 
@@ -50,8 +52,10 @@ class BaseCommand:
         modifier : OptionModifier
             The option modifier,
             some modifier used to modify the value.
+        type : BasicType
+            Convert the value to specified type.
         """
-        self.callback.options.add(name, default, modifier, append=True)
+        self.callback.options.add(name, default, modifier, append=True, type=type)
 
 
 class Command(BaseCommand):
