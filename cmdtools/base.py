@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from typing import Any, Dict, List, Optional, Union
 
 from cmdtools import utils
@@ -146,6 +147,7 @@ class Executor:
             if error callback is not set.
         """
         result = None
+        old_options = copy.deepcopy(self.callback.options.options)
 
         try:
             context = self.callback.make_context(self.command, self.attrs)
@@ -159,6 +161,7 @@ class Executor:
             else:
                 raise exception
 
+        self.callback.options.options = old_options
         return result
 
     async def exec_coro(self) -> Optional[Any]:
@@ -176,6 +179,7 @@ class Executor:
             if error callback is not set.
         """
         result = None
+        old_options = copy.deepcopy(self.callback.options.options)
 
         try:
             context = self.callback.make_context(self.command, self.attrs)
@@ -189,6 +193,7 @@ class Executor:
             else:
                 raise exception
 
+        self.callback.options.options = old_options
         return result
 
 
