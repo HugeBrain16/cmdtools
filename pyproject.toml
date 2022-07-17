@@ -12,7 +12,8 @@ packages = [
     {include = "cmdtools"},
     {include = "ext", from = "cmdtools"},
     {include = "callback", from = "cmdtools"},
-    {include = "utils", from = "cmdtools"}
+    {include = "utils", from = "cmdtools"},
+    {include = "converter", from = "cmdtools"},
 ]
 keywords = [
     "command-parser",

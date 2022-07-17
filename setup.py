@@ -19,6 +19,7 @@ setuptools.setup(
         "cmdtools/ext",
         "cmdtools/callback",
         "cmdtools/utils",
+        "cmdtools/converter",
     ],
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
