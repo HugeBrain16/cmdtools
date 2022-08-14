@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "cmdtools-py"
 version = "3.0.1"
-description = "command text parser and command processor"
+description = "A (not quite) flexible command framework"
 authors = ["HugeBrain16 <joshtuck373@gmail.com>"]
 maintainers = ["HugeBrain16 <joshtuck373@gmail.com>"]
 license = "MIT"

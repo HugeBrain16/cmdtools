@@ -6,7 +6,7 @@ from cmdtools import __version__ as version
 
 setuptools.setup(
     name="cmdtools-py",
-    description="command text parser and command processor",
+    description="A (not quite) flexible command framework",
     version=version,
     author="HugeBrain16",
     author_email="joshtuck373@gmail.com",
