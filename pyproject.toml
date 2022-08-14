@@ -21,6 +21,8 @@ keywords = [
     "command",
     "cmd",
     "cmd-parser",
+    "framework",
+    "command-framework",
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",

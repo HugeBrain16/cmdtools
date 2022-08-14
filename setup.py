@@ -11,7 +11,7 @@ setuptools.setup(
     author="HugeBrain16",
     author_email="joshtuck373@gmail.com",
     license="MIT",
-    keywords="command-parser command-processor command cmd cmd-parser",
+    keywords="command-parser command-processor command cmd cmd-parser framework command-framework",
     url="https://github.com/HugeBrain16/cmdtools",
     include_package_data=True,
     packages=[
