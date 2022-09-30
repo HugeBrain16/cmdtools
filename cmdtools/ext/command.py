@@ -99,6 +99,9 @@ class Container:
 
         self.commands = commands
 
+    def __iter__(self):
+        yield from self.commands
+
     def get_names(self, aliases: bool = False) -> List[str]:
         """gets all command names stored in the container.
 

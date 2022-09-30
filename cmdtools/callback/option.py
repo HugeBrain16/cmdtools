@@ -59,6 +59,9 @@ class Options:
         else:
             self.options = options
 
+    def __iter__(self):
+        yield from self.options
+
     def __getattr__(self, name: str) -> Optional[str]:
         option = self.get(name)
 
