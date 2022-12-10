@@ -20,18 +20,29 @@ class BaseCommand:
 
     @property
     def callback(self) -> Optional[Callback]:
-        """returns the callback of the command struct or class if set."""
-        if not isinstance(self._callback, Callback):
-            func: Callable = getattr(self, self.name, None)
-            errfunc: Callable = getattr(self, "error_" + self.name, None)
-
-            if inspect.ismethod(func):
-                self._callback = Callback(func)
-                if errfunc:
-                    self._callback.errcall = ErrorCallback(errfunc)
-                return self._callback
-        else:
+        """Returns the callback of the command object if set."""
+        # Check if the command object has a callback
+        if isinstance(self._callback, Callback):
             return self._callback
+        else:
+            # Get the name of the command function and the error handler function
+            command_function_name = self.name
+            error_handler_function_name = "error_" + self.name
+
+            # Use the getattr function to retrieve the command function and error handler function
+            command_function = getattr(self, command_function_name, None)
+            error_handler_function = getattr(self, error_handler_function_name, None)
+
+            # Check if the command function is a method
+            if inspect.ismethod(command_function):
+                # Create a Callback object for the command function
+                self._callback = Callback(command_function)
+
+                # If an error handler function is defined, create an ErrorCallback object for it
+                if error_handler_function:
+                    self._callback.errcall = ErrorCallback(error_handler_function)
+
+                return self._callback
 
     def add_option(
         self,
