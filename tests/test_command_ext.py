@@ -23,6 +23,12 @@ class Secret(Command):
         return "1234"
 
 
+@test.command(name="dectest", aliases=["dt", "decor"])
+class DecoratorTest(Command):
+    def dectest(self, ctx):
+        return ctx
+
+
 class TestCommandExt(IsolatedAsyncioTestCase):
     async def test_group_wrapper(self):
         cmd1 = cmdtools.Cmd("/sumcmd 10 10 10")
@@ -43,10 +49,15 @@ class TestCommandExt(IsolatedAsyncioTestCase):
         self.assertEqual(out, "1234")
 
     async def test_container(self):
-        cont = Container([
-            Command("foo"),
-            Command("bar")
-        ])
-        
+        cont = Container([Command("foo"), Command("bar")])
+
         self.assertTrue(cont.has_command("foo"))
         self.assertTrue(cont.has_command("bar"))
+
+    async def test_decorator(self):
+        cmd = test.get_command("dectest")
+
+        self.assertEqual(cmd.name, "dectest")
+        self.assertEqual(cmd.callback.func.__name__, "dectest")
+        self.assertIn("dt", cmd.aliases)
+        self.assertIn("decor", cmd.aliases)

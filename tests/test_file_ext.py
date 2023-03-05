@@ -9,9 +9,9 @@ class TestFileExt(IsolatedAsyncioTestCase):
         out = await mod.run(cmdtools.Cmd("/cmdmod"))
 
         self.assertEqual(out, 1234)
-    
+
     async def test_load_class(self):
         mod = ModuleLoader("tests/assets/cmdmod.py")
         out = await mod.run(cmdtools.Cmd("/cmdmod"))
-        
+
         self.assertEqual(out, 1234)

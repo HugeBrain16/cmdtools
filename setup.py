@@ -23,7 +23,7 @@ setuptools.setup(
     ],
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
-    project_urls = {
+    project_urls={
         "Documentation": "https://cmdtools-py.readthedocs.io/en/latest",
         "Issues Tracker": "https://github.com/HugeBrain16/cmdtools/issues",
         "Source": "https://github.com/HugeBrain16/cmdtools",

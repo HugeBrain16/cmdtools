@@ -128,6 +128,18 @@ class Container:
 
         return names
 
+    def get_command(self, name: str) -> Optional[Command]:
+        """get command object by name.
+
+        Parameters
+        ----------
+        name : str
+            Name of the command.
+        """
+        for cmd in self.commands:
+            if cmd.name == name:
+                return cmd
+
     def has_command(self, name: str) -> bool:
         """Checks if the container has a command.
 
@@ -225,7 +237,15 @@ class Group(Container):
             nonlocal name
 
             if inspect.isclass(obj) and Command in inspect.getmro(obj):
-                self.commands.append(obj())
+                if len(inspect.signature(obj.__init__).parameters) > 1:
+                    _obj = obj(name)
+                else:
+                    _obj = obj()
+
+                if aliases:
+                    _obj._aliases = aliases
+
+                self.commands.append(_obj)
             else:
                 if not name:
                     if isinstance(obj, Callback):

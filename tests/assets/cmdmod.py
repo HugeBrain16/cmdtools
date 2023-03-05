@@ -10,6 +10,6 @@ def cmdmod(ctx):
 class CmdMod(Command):
     def __init__(self):
         super().__init__("cmdmod")
-        
+
     def cmdmod(self, ctx):
         return 1234
