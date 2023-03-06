@@ -241,6 +241,7 @@ class Group(Container):
                     _obj = obj(name)
                 else:
                     _obj = obj()
+                    _obj.name = name
 
                 if aliases:
                     _obj._aliases = aliases
