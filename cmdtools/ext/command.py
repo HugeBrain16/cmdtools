@@ -247,6 +247,8 @@ class Group(Container):
                     _obj._aliases = aliases
 
                 self.commands.append(_obj)
+
+                return _obj
             else:
                 if not name:
                     if isinstance(obj, Callback):
@@ -262,6 +264,43 @@ class Group(Container):
                 self.commands.append(wrapper)
 
                 return wrapper
+            return obj
+
+        return decorator
+
+    def add_option(
+        self,
+        name: str,
+        *,
+        default: Any = None,
+        modifier: OptionModifier = OptionModifier.NoModifier,
+        type: BasicTypes = str,
+    ):
+        """Adds an option to callback.
+
+        Parameters
+        ----------
+        name : str
+            The option name.
+        default : str
+            Default value if argument is not specified.
+        modifier : OptionModifier
+            The option modifier,
+            some modifier used to modify the value.
+        type : BasicType
+            Convert the value to specified type.
+
+        Raises
+        ------
+        TypeError
+            When adding option to non Command instance.
+        """
+
+        def decorator(obj):
+            if isinstance(obj, Command):
+                obj.callback.options.add(name, default, modifier, type=type)
+            else:
+                raise TypeError("Cannot add option to non Command instance.")
             return obj
 
         return decorator
