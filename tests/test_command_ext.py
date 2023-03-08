@@ -23,6 +23,8 @@ class Secret(Command):
         return "1234"
 
 
+@test.add_option("foo", default=1)
+@test.add_option("bar", default=2)
 @test.command(name="dectest", aliases=["dt", "decor"])
 class DecoratorTest(Command):
     def dectest(self, ctx):
@@ -61,3 +63,5 @@ class TestCommandExt(IsolatedAsyncioTestCase):
         self.assertEqual(cmd.callback.func.__name__, "dectest")
         self.assertIn("dt", cmd.aliases)
         self.assertIn("decor", cmd.aliases)
+        self.assertTrue(cmd.callback.options.has_option("foo"))
+        self.assertTrue(cmd.callback.options.has_option("bar"))
