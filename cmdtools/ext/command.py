@@ -249,8 +249,7 @@ class Group(Container):
                     _obj._aliases = aliases
 
                 self.commands.append(_obj)
-
-                return _obj
+                obj = _obj
             else:
                 if not name:
                     if isinstance(obj, Callback):
