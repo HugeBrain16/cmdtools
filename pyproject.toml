@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cmdtools-py"
-version = "3.0.3"
+version = "3.0.4"
 description = "A (not quite) flexible command framework"
 authors = ["HugeBrain16 <joshtuck373@gmail.com>"]
 maintainers = ["HugeBrain16 <joshtuck373@gmail.com>"]
