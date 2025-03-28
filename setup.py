@@ -9,7 +9,7 @@ setuptools.setup(
     description="A (not quite) flexible command framework",
     version=version,
     author="HugeBrain16",
-    author_email="joshtuck373@gmail.com",
+    author_email="hugebrain16@gmail.com",
     license="MIT",
     keywords="command-parser command-processor command cmd cmd-parser framework command-framework",
     url="https://github.com/HugeBrain16/cmdtools",
@@ -26,7 +26,6 @@ setuptools.setup(
     project_urls={
         "Documentation": "https://cmdtools-py.readthedocs.io/en/latest",
         "Issues Tracker": "https://github.com/HugeBrain16/cmdtools/issues",
-        "Source": "https://github.com/HugeBrain16/cmdtools",
     },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -36,7 +35,5 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
     ],
 )
