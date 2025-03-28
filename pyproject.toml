@@ -1,9 +1,9 @@
-[tool.poetry]
+[project]
 name = "cmdtools-py"
 version = "3.0.4"
 description = "A (not quite) flexible command framework"
-authors = ["HugeBrain16 <hugebrain16@gmail.com>"]
-maintainers = ["HugeBrain16 <hugebrain16@gmail.com>"]
+authors = [{name = "HugeBrain16", email = "hugebrain16@gmail.com"}]
+maintainers = [{name = "HugeBrain16", email = "hugebrain16@gmail.com"}]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/HugeBrain16/cmdtools"
@@ -33,18 +33,19 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.7",
 ]
+requires-python = ">=3.7"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = ">=3.7"
 
-[tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
-pytest-cov = "^3.0.0"
-codecov = "^2.1.12"
+[tool.poetry.group.dev.dependencies]
+pytest = ">=6.2.5"
+pytest-cov = ">=3.0.0"
+codecov = ">=2.1.13"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry.urls]
+[project.urls]
 "Issues Tracker" = "https://github.com/HugeBrain16/cmdtools/issues"
