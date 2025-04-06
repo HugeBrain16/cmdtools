@@ -104,9 +104,9 @@ As of version 3.1.0, cmdtools supports parameter arguments.
     import cmdtools
 
     @cmdtools.callback.add_option("object_id")
-    @cmdtools.callback.add_option("x")
-    @cmdtools.callback.add_option("y")
-    @cmdtools.callback.add_option("z")
+    @cmdtools.callback.add_option("x", default=0.0)
+    @cmdtools.callback.add_option("y", default=0.0)
+    @cmdtools.callback.add_option("z", default=0.0)
     def spawn(ctx):
         print(f"Spawned {ctx.options.object_id} at ({ctx.options.x}, {ctx.options.y}, {ctx.options.z})")
 
