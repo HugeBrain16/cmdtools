@@ -49,7 +49,7 @@ asyncio.run(cmdtools.execute(cmd, send))
 
 ## Links
 
-PyPI project: https://pypi.org/project/cmdtools-py
-Repository: https://github.com/HugeBrain16/cmdtools
-Issues tracker: https://github.com/HugeBrain16/cmdtools/issues
+PyPI project: https://pypi.org/project/cmdtools-py  
+Repository: https://github.com/HugeBrain16/cmdtools  
+Issues tracker: https://github.com/HugeBrain16/cmdtools/issues  
 Documentation: https://cmdtools-py.readthedocs.io/en/latest
