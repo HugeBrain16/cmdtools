@@ -104,18 +104,22 @@ class Container:
     def __iter__(self):
         yield from self.commands
 
-    def get_names(self, aliases: bool = False) -> List[str]:
+    def add_command(self, command: Command):
+        self.commands.append(command)
+
+    def get_names(self, get_aliases: bool = False) -> List[str]:
         """gets all command names stored in the container.
 
         Parameters
         ----------
-        aliases : bool
-            Includes the commands aliases.
+        get_aliases : bool
+            Include commands aliases.
         """
         names = [cmd.name for cmd in self.commands]
 
-        if aliases:
-            names.extend([cmd.aliases for cmd in self.commands])
+        if get_aliases:
+            for aliases in [cmd.aliases for cmd in self.commands]:
+                names.extend(aliases)
 
         return names
 
