@@ -2,7 +2,7 @@ Quickstart
 ==========
 
 | A quick tutorial to get started
-| check out `install <./install.html>`__ if you haven't already installed cmdtools library
+| check out `install <./install.html>`__ if you haven't already installed cmdtools
 
 Basic command
 -------------
@@ -21,8 +21,7 @@ A basic ping pong command
 Callbacks and Arguments
 -----------------------
 
-you can pass arguments to the command and handle it in specified
-callback
+You can specify arguments in the command and access them in the specified callback
 
 .. code:: py
 
@@ -36,17 +35,16 @@ callback
             print("Login success!")
         else:
             print("Invalid login!")
-            
+
     cmd = cmdtools.Cmd("!login admin admin", prefix='!')
 
     if cmd.name == "login":
         asyncio.run(cmdtools.execute(cmd, login))
 
-you can execute a command without using an event loop by
-creating your own executor
+You can execute a command without defining an async callback with `Executor`
 
 .. code:: py
-    
+
     import cmdtools
 
     @cmdtools.callback.add_option("name")
@@ -56,7 +54,7 @@ creating your own executor
             print("Login success!")
         else:
             print("Invalid login!")
-            
+
     cmd = cmdtools.Cmd("!login admin admin", prefix='!')
 
     if cmd.name == "login":
@@ -66,8 +64,7 @@ creating your own executor
 Error handling
 --------------
 
-if error occurred during command execution, you can specify an error
-callback to handle the error or the exception
+You can assign an error callback to a callback to handle a specific exception.
 
 .. code:: py
 
@@ -81,18 +78,39 @@ callback to handle the error or the exception
 
     @login.error
     def error_login(ctx):
-        # check exception instance, in this case it's missing required argument
+        # handle missing required argument
         if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
             if ctx.error.option == "user":
                 print("user is required!")
             elif ctx.error.option == "password":
                 print("password is required!")
         else:
-            # if other error occured, raise the exception
-            # otherwise it would be suppressed by the processor
+            # raise exception for unhandled error
             raise error
 
     cmd = cmdtools.Cmd("!login admin", prefix='!')
 
     if cmd.name == "login":
         asyncio.run(cmdtools.execute(cmd, login))
+
+Parameter arguments
+------------------------
+
+As of version 3.1.0, cmdtools supports parameter arguments.
+
+.. code:: py
+
+    import asyncio
+    import cmdtools
+
+    @cmdtools.callback.add_option("object_id")
+    @cmdtools.callback.add_option("x")
+    @cmdtools.callback.add_option("y")
+    @cmdtools.callback.add_option("z")
+    def spawn(ctx):
+        print(f"Spawned {ctx.options.object_id} at ({ctx.options.x}, {ctx.options.y}, {ctx.options.z})")
+
+    cmd = cmdtools.Cmd("/spawn 1001 x=1.0 z=4.0")
+
+    if cmd.name == "spawn":
+        asyncio.run(cmdtools.execute(cmd, spawn))

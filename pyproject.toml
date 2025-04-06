@@ -1,6 +1,6 @@
 [project]
 name = "cmdtools-py"
-version = "3.0.4"
+version = "3.1.0"
 description = "A (not quite) flexible command framework"
 authors = [{ name = "HugeBrain16", email = "hugebrain16@gmail.com" }]
 maintainers = [{ name = "HugeBrain16", email = "hugebrain16@gmail.com" }]
