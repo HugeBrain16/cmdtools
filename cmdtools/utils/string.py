@@ -17,29 +17,31 @@ def splitargs(text: str) -> List[str]:
         The string to split.
     """
     result: List[str] = []
-
-    in_quote: bool = False
     quote: str = ""
     segment: str = ""
 
     for char in text:
-        if not in_quote:
+        if not quote:
             if char == " " and segment:
                 result.append(segment)
                 segment = ""
             elif char in "'\"":
                 quote = char
-                in_quote = True
             else:
+                if not segment and char == " ":
+                    continue
                 segment += char
         else:
-            if char == quote and segment:
+            if char == quote:
                 result.append(segment)
                 segment = ""
+                quote = ""
             else:
                 segment += char
 
     if segment:
+        if quote:
+            raise SyntaxError("Unclosed quote")
         result.append(segment)
 
     return result
