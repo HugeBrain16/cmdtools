@@ -1,11 +1,13 @@
-[project]
+[tool.poetry]
 name = "cmdtools-py"
 version = "3.1.0"
 description = "A (not quite) flexible command framework"
-authors = [{ name = "HugeBrain16", email = "hugebrain16@gmail.com" }]
-maintainers = [{ name = "HugeBrain16", email = "hugebrain16@gmail.com" }]
+authors = ["HugeBrain16 <hugebrain16@gmail.com>"]
+maintainers = ["HugeBrain16 <hugebrain16@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/HugeBrain16/cmdtools"
+documentation = "https://cmdtools-py.readthedocs.io/en/latest"
 keywords = [
     "command-parser",
     "command-processor",
@@ -23,9 +25,6 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.7",
 ]
-requires-python = ">=3.7"
-
-[tool.poetry]
 packages = [{ include = "cmdtools" }]
 
 [tool.poetry.dependencies]
@@ -45,7 +44,5 @@ asyncio_default_fixture_loop_scope = "function"
 requires = ["poetry-core>=1.0.0", "setuptools"]
 build-backend = "poetry.core.masonry.api"
 
-[project.urls]
-repository = "https://github.com/HugeBrain16/cmdtools"
-documentation = "https://cmdtools-py.readthedocs.io/en/latest"
+[tool.poetry.urls]
 "Issues Tracker" = "https://github.com/HugeBrain16/cmdtools/issues"
