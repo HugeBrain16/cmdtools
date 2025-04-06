@@ -6,8 +6,11 @@ import inspect
 import os
 from typing import Callable
 
-from cmdtools.callback import Callback
+from cmdtools.callback import Callback, ErrorCallback
 from cmdtools.ext.command import Command, Container, GroupWrapper
+from cmdtools.errors import CmdBaseException
+
+__all__ = ["ModuleLoader"]
 
 
 class ModuleLoader(Container):
@@ -16,15 +19,19 @@ class ModuleLoader(Container):
     Parameters
     ----------
     fpath : str
-        Path to the command file.
+        Path to the module.
     load_classes : bool
-        Loads command classes in the module if true,
-        if false just load the whole file as a command module.
+        Loads defined class type commands if true,
+        otherwise loads the module as a :class:`Command`.
 
     Raises
     ------
-    NameError
-        If not loading command classes, and callback is not set.
+    CmdBaseException
+        - If failed to load module.
+        - If the module failed to initialized.
+        - If the callback loaded is not a function type.
+    TypeError
+        If aliases is not a list, when loading module as command file
     """
 
     def __init__(self, fpath: str, *, load_classes: bool = True):
@@ -35,8 +42,16 @@ class ModuleLoader(Container):
         spec = importlib.util.spec_from_file_location(
             fpath.rsplit(os.sep, 1)[-1].rstrip(".py"), fpath
         )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+
+        if spec:
+            module = importlib.util.module_from_spec(spec)
+
+            if spec.loader:
+                spec.loader.exec_module(module)
+            else:
+                raise CmdBaseException("Cannot initialize module, could not get module loader: " + fpath)
+        else:
+            raise CmdBaseException("Could not load module: " + fpath)
 
         if load_classes:
             for _, obj in module.__dict__.items():
@@ -44,12 +59,29 @@ class ModuleLoader(Container):
                     if Command in inspect.getmro(obj):
                         self.commands.append(obj())
         else:
-            wrapper = GroupWrapper(spec.name, getattr(module, "__aliases__", None))
-            callfunc: Callable = getattr(module, spec.name, None)
+            aliases = getattr(module, "__aliases__", None)
+            callback = getattr(module, spec.name, None)
+            error_callback = getattr(module, "error_" + spec.name, None)
 
-            if callfunc:
-                wrapper._callback = Callback(callfunc)
+            if not aliases:
+                aliases = []
+
+            if not isinstance(aliases, list):
+                raise TypeError("aliases is not list str type.")
+            if not isinstance(callback, Callable):
+                raise CmdBaseException("Could not load callback.")
+
+            wrapper = GroupWrapper(spec.name, aliases)
+            if not isinstance(callback, Callback):
+                wrapper._callback = Callback(callback)
+
             else:
-                raise NameError("Could not load callback")
+                wrapper._callback = callback
+
+            # An edge case where there is no way to assign error callback for the callback function
+            if isinstance(error_callback, Callable) \
+                and not isinstance(error_callback, Callback) \
+                and wrapper.callback.errcall is None:
+                wrapper.callback.errcall = ErrorCallback(error_callback)
 
             self.commands.append(wrapper)
