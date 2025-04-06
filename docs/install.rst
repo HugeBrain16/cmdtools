@@ -4,13 +4,13 @@ Install
 .. note::
     cmdtools requires python 3.7 or later
 
-install latest release from Python Package Index
+install the latest release from PyPI
 
 .. code:: sh
 
     pip install cmdtools-py --upgrade
 
-install latest commit from GitHub
+install the latest commit from GitHub
 
 .. code:: sh
 

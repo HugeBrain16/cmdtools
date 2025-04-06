@@ -1,0 +1,13 @@
+{{ pkgname }}
+{{ "=" * pkgname|length }}
+
+{% for submodule in submodules %}
+{{ submodule }}
+{{ '-' * submodule|length }}
+
+.. automodule:: {{ submodule }}
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+{% endfor %}
