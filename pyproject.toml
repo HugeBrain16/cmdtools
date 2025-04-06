@@ -30,6 +30,7 @@ packages = [{ include = "cmdtools" }]
 
 [tool.poetry.dependencies]
 python = ">=3.7"
+typing-extensions = "4.7.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=6.2.5"

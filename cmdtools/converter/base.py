@@ -1,4 +1,9 @@
-from typing import TypeAlias, Type, Union
+from typing import Type, Union
+
+try:
+    from typing import TypeAlias
+except ImportError:
+    from typing_extensions import TypeAlias
 
 __all__ = [
     "BaseConverter",

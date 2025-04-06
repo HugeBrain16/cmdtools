@@ -4,6 +4,10 @@ import setuptools
 from cmdtools import __version__ as version
 
 
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
+
 setuptools.setup(
     name="cmdtools-py",
     description="A (not quite) flexible command framework",
@@ -15,6 +19,7 @@ setuptools.setup(
     url="https://github.com/HugeBrain16/cmdtools",
     include_package_data=True,
     packages=["cmdtools"],
+    install_requires=requirements,
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
     project_urls={

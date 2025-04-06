@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import inspect
 import typing
-from typing import Any, Callable, Dict, Optional, Union, TypeAlias
+from typing import Any, Callable, Dict, Optional, Union
+
+try:
+    from typing import TypeAlias
+except ImportError:
+    from typing_extensions import TypeAlias
 
 from cmdtools.callback.option import OptionModifier, Options
 from cmdtools.converter.base import BasicTypes
