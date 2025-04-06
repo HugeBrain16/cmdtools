@@ -1,4 +1,7 @@
+from typing import Optional
+
 __all__ = [
+    "CmdBaseException",
     "NotEnoughArgumentError",
     "NotFoundError",
     "ConversionError",
@@ -16,6 +19,16 @@ class CmdBaseException(Exception):
 
 
 class NotEnoughArgumentError(CmdBaseException):
+    """Raises when an option is missing an argument.
+
+    Parameters
+    ----------
+    message : str
+        Error message.
+    option : str
+        Name of the option.
+    """
+
     def __init__(self, message: str, option: str):
         self.message = message
         self.option = option
@@ -23,14 +36,35 @@ class NotEnoughArgumentError(CmdBaseException):
 
 
 class NotFoundError(CmdBaseException):
-    def __init__(self, message: str, name: str = None):
+    """Raises when a command or a command module is not found
+
+    Parameters
+    ----------
+    message : str
+        Error message.
+    name : str
+        Name of the identifier.
+    """
+
+    def __init__(self, message: str, name: Optional[str] = None):
         self.message = message
-        self.name = name
-        super().__init__(name)
+        if name is not None:
+            self.name = name
+        else:
+            self.name = ""
+        super().__init__(message)
 
 
 class ConversionError(CmdBaseException):
-    """raises when failed to convert an object to a specific type"""
+    """Raises when failed to convert an object to a specific type
+
+    Parameters
+    ----------
+    message : str
+        Error message.
+    option : str
+        Name of the option.
+    """
 
     def __init__(self, message: str, option: str):
         self.option = option

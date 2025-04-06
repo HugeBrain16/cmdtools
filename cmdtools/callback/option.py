@@ -1,10 +1,12 @@
 import dataclasses
 import enum
 from typing import Any, List, Optional
-from cmdtools.converter.base import BasicTypes
+from cmdtools.converter.base import BaseType, BasicTypes
 
 __all__ = [
     "OptionModifier",
+    "Option",
+    "Options"
 ]
 
 
@@ -12,7 +14,7 @@ class OptionModifier(enum.Enum):
     """An option modifier.
 
     NoModifier
-        doesn't do anything to the option value.
+        Does not modify the value.
     ConsumeRest
         Consume the rest of the arguments in the command
     """
@@ -29,17 +31,20 @@ class Option:
     ----------
     name : str
         The name of the option.
-    value : str
+    value : BaseType
         The value of the option.
+    default : BaseType
+        The default value of the option.
     modifier : OptionModifier
         The option modifier,
         some modifier used to modify the value.
     type : BasicType
-        Convert the value to specified type.
+        Converter target type.
     """
 
     name: str
-    value: str
+    value: Optional[BaseType] = None
+    default: Optional[BaseType] = None
     modifier: OptionModifier = OptionModifier.NoModifier
     type: BasicTypes = str
 
@@ -50,25 +55,39 @@ class Options:
     Parameters
     ----------
     options : List[Option]
-        List of options to store.
+        List of options.
     """
 
-    def __init__(self, options: List[Option] = None):
+    def __init__(self, options: Optional[List[Option]] = None):
         if options is None:
-            self.options = []
-        else:
-            self.options = options
+            options = []
+        self.options = options
 
     def __iter__(self):
         yield from self.options
 
-    def __getattr__(self, name: str) -> Optional[str]:
+    def __getattr__(self, name: str) -> Optional[BaseType]:
         option = self.get(name)
 
         if option:
             return option.value
 
-    def get(self, name: str) -> Option:
+    def copy(self):
+        """Creates a new Options instance with copies of all stored options."""
+        options = []
+
+        for option in self.options:
+            opt = Option(
+                name=option.name,
+                value=option.value,
+                default=option.default,
+                modifier=option.modifier,
+                type=option.type
+            )
+            options.append(opt)
+        return Options(options)
+
+    def get(self, name: str) -> Optional[Option]:
         """Gets an option by name.
 
         Parameters
@@ -81,7 +100,7 @@ class Options:
                 return option
 
     def has_option(self, name: str) -> Optional[int]:
-        """Check if the container has an option.
+        """Checks if the container has an option.
 
         Parameters
         ----------
@@ -101,33 +120,33 @@ class Options:
         append: bool = False,
         type: BasicTypes = str,
     ):
-        """Store or add an option to container.
+        """Adds an option to the container.
 
         Parameters
         ----------
         name : str
             The option name.
-        default : str
-            Default value if argument is not specified.
+        default : Any
+            The default value.
         modifier : OptionModifier
-            The option modifier,
-            some modifier used to modify the value.
+            The option modifier.
         append : bool
-            If true use append method to store an option,
-            else use insert from the first index (0).
+            Adds option with append mode.
         type : BasicType
-            Convert the value to specified type.
+            Converter target type.
         """
         option = self.has_option(name)
 
         if not option:
-            option_args = []
-            option_args.append(name)
-            option_args.append(default)
-            option_args.append(modifier)
-            option_args.append(type)
+            option = Option(
+                name=name,
+                value=None,
+                default=default,
+                modifier=modifier,
+                type=type
+            )
 
             if not append:
-                self.options.insert(0, Option(*option_args))
+                self.options.insert(0, option)
             else:
-                self.options.append(Option(*option_args))
+                self.options.append(option)

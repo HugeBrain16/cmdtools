@@ -1,5 +1,5 @@
-from typing import Optional
-from cmdtools.converter.base import BaseConverter, BasicTypes
+from typing import Optional, Type
+from cmdtools.converter.base import BaseConverter, BaseType, BasicTypes
 
 __all__ = [
     "IntConverter",
@@ -63,7 +63,7 @@ class BoolConverter(BaseConverter):
         The value to convert
     """
 
-    def get_bool(self) -> Optional[float]:
+    def get_bool(self) -> Optional[bool]:
         result = None
 
         if isinstance(self.value, str):
@@ -111,7 +111,7 @@ class Converter(
         The value to convert
     """
 
-    def __init__(self, value: BasicTypes):
+    def __init__(self, value: BaseType):
         super().__init__(value)
 
     def convert(self, type: BasicTypes = str):

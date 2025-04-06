@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import inspect
 import typing
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union, TypeAlias
 
 from cmdtools.callback.option import OptionModifier, Options
 from cmdtools.converter.base import BasicTypes
 from cmdtools.errors import NotEnoughArgumentError, ConversionError
+from cmdtools.ext.param import apply_params
 
 if typing.TYPE_CHECKING:
     from cmdtools import Cmd
@@ -19,12 +20,12 @@ __all__ = [
     "ErrorCallback",
     "callback_init",
     "add_option",
+    "AttributeType",
 ]
 
 
 class Attributes:
-    """Some sort of container to pass some objects
-    that cannot be specified from the command argument.
+    """An attributes container
 
     Parameters
     ----------
@@ -32,7 +33,7 @@ class Attributes:
         A dictionary containing any objects.
     """
 
-    def __init__(self, attrs: Dict[str, Any] = None):
+    def __init__(self, attrs: Optional[Dict[str, Any]] = None):
         if attrs is None:
             self.attrs = {}
         else:
@@ -43,9 +44,9 @@ class Attributes:
 
 
 class BaseContext:
-    """The base class for creating a context."""
+    """The base class for context."""
 
-    def __init__(self, command: Cmd, attrs: Union[Attributes, Dict[str, Any]] = None):
+    def __init__(self, command: Cmd, attrs: AttributeType = None):
         self.command = command
 
         if isinstance(attrs, Attributes):
@@ -55,19 +56,19 @@ class BaseContext:
         else:
             self.attrs = Attributes()
 
+AttributeType: TypeAlias = Optional[Union[Attributes, Dict[str, Any]]]
 
 class Context(BaseContext):
-    """A context to pass to a Callback when
-    the callback gets called by an executor.
+    """A context to be passed to a Callback when command is executed.
 
     Parameters
     ----------
     command : Cmd
-        The command object
+        The command object to be executed.
     options : Options
-        The specified options from the callback.
-    attrs : Attributes
-        The specified attributes from the callback.
+        The options of the callback.
+    attrs : AttributeType
+        Additional attributes to be passed to the callback context.
 
     Raises
     ------
@@ -78,8 +79,8 @@ class Context(BaseContext):
     def __init__(
         self,
         command: Cmd,
-        options: Options = None,
-        attrs: Union[Attributes, Dict[str, Any]] = None,
+        options: Optional[Options] = None,
+        attrs: AttributeType = None,
     ):
         if isinstance(options, Options):
             self.options = options
@@ -91,8 +92,16 @@ class Context(BaseContext):
         super().__init__(command, attrs)
 
         for idx, option in enumerate(self.options.options):
-            if idx < len(self.command.args):
-                converter = self.command.converter(self.command.args[idx])
+            if option.value is None and option.default is None:
+                raise NotEnoughArgumentError(
+                    f"Not enough argument for option: {option.name}", option.name
+                )
+
+            if idx < len(self.options.options):
+                if option.value is None:
+                    option.value = option.default
+
+                converter = self.command.converter(option.value)
 
                 if option.modifier is OptionModifier.ConsumeRest:
                     # Consume the rest of the arguments in the command
@@ -109,29 +118,24 @@ class Context(BaseContext):
 
                     # set the value to the converted value if successfully converted,
                     # otherwise, set it to the old value
-                    if converted:
+                    if converted is not None:
                         option.value = converted
                     else:
                         option.value = converter.value
-
-            if option.value is None:
-                raise NotEnoughArgumentError(
-                    f"Not enough argument for option: {option.name}", option.name
-                )
 
             self.options.options[idx] = option
 
 
 class ErrorContext(BaseContext):
-    """A context to pass to an error callback."""
+    """A context to be passed to an error callback."""
 
-    def __init__(self, command: Cmd, error: Exception, attrs: Attributes = None):
+    def __init__(self, command: Cmd, error: Exception, attrs: AttributeType = None):
         self.error = error
         super().__init__(command, attrs)
 
 
 class BaseCallback:
-    """The base class for creating a callback."""
+    """The callback base class"""
 
     def __init__(self, func: Callable):
         self.func = func
@@ -141,16 +145,15 @@ class BaseCallback:
 
     @property
     def is_coroutine(self):
-        """Checks if callback is a coroutine function."""
+        """Checks if callback is an async function."""
         return inspect.iscoroutinefunction(self.func)
 
 
 class ErrorCallback(BaseCallback):
-    """A callback used for handling errors or exceptions."""
+    """A callback for error handling."""
 
-    def make_context(self, command: Cmd, error: Exception, attrs: Attributes = None):
-        """Create a new context based on a command object,
-        and the error that occurs.
+    def make_context(self, command: Cmd, error: Exception, attrs: AttributeType = None):
+        """Create a new context based on a command object with the exception that was raised.
 
         Parameters
         ----------
@@ -158,23 +161,23 @@ class ErrorCallback(BaseCallback):
             The command object.
         error : Exception
             The exception that gets raised.
-        attrs : Attributes
-            Attributes to pass to the callback context.
+        attrs : AttributeType
+            Additional attributes to be passed to the callback context.
 
         Returns
         -------
-        A context created from the command object and the error.
+        The context created with the exception.
         """
         return ErrorContext(command, error, attrs)
 
 
 class Callback(BaseCallback):
-    """A function to call when related command gets executed.
+    """A callback for handling command execution.
 
     Parameters
     ----------
     func : Callable
-        A function to call.
+        A function to assign as callback.
     """
 
     def __init__(self, func: Callable):
@@ -182,26 +185,27 @@ class Callback(BaseCallback):
         self.errcall = None
         super().__init__(func)
 
-    def make_context(self, command: Cmd, attrs: Attributes = None) -> Context:
+    def make_context(self, command: Cmd, attrs: AttributeType = None) -> Context:
         """Create a new context based on a command object.
 
         Parameters
         ----------
         command : Cmd
             The command object.
-        attrs : Attributes
-            Attributes to pass to the callback context.
+        attrs : AttributeType
+            Additional attributes to be passed to the callback context.
 
         Returns
         -------
-        A context created from the command object.
+        The context created.
         """
-        return Context(command, self.options, attrs)
+        options = self.options.copy()
+        apply_params(command, options)
+
+        return Context(command, options, attrs)
 
     def error(self, func: Callable) -> ErrorCallback:
-        """Wraps a function to an ErrorCallback object,
-        and set wrapped function as a callback for error
-        handling.
+        """Wraps a function and assigns it as an error callback.
 
         Parameters
         ----------
@@ -217,7 +221,7 @@ class Callback(BaseCallback):
 
 
 def callback_init(func: Callable) -> Callback:
-    """Wraps a function to a Callback.
+    """Wraps a function as Callback.
 
     Parameters
     ----------
@@ -238,7 +242,9 @@ def add_option(
     modifier: OptionModifier = OptionModifier.NoModifier,
     type: BasicTypes = str,
 ):
-    """A callback wrapper for adding an option.
+    """A decorator for adding an option to a callback.
+
+    This decorator also wraps the function as a callback if it's not a Callback.
 
     Parameters
     ----------
@@ -247,15 +253,14 @@ def add_option(
     default : str
         Default value if argument is not specified.
     modifier : OptionModifier
-        The option modifier,
-        some modifier used to modify the value.
+        The option modifier
     type : BasicType
-        Convert the value to specified type.
+        Converts the value to the specified type.
 
     Raises
     ------
     TypeError
-        If the wrapped object is not a callback object.
+        If the target is not a function or a Callback.
     """
 
     def decorator(obj):

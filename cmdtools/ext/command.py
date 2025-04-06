@@ -1,16 +1,18 @@
 import inspect
+import typing
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from cmdtools import Cmd, Executor, NotFoundError
-from cmdtools.callback import Attributes, Callback, ErrorCallback
+from cmdtools.base import Cmd, Executor
+from cmdtools.callback import Attributes, Callback, ErrorCallback, AttributeType
 from cmdtools.callback.option import OptionModifier
 from cmdtools.converter.base import BasicTypes
+from cmdtools.errors import CmdBaseException, NotFoundError
 
 __all__ = ["Command", "Group"]
 
 
 class BaseCommand:
-    """Base class of command struct or class."""
+    """The base class of command struct or class."""
 
     _callback: Optional[Callback]
 
@@ -19,8 +21,8 @@ class BaseCommand:
         self._callback = None
 
     @property
-    def callback(self) -> Optional[Callback]:
-        """Returns the callback of the command object if set."""
+    def callback(self) -> Callback:
+        """Callback determined by function name."""
         if isinstance(self._callback, Callback):
             return self._callback
         else:
@@ -34,6 +36,8 @@ class BaseCommand:
                     self._callback.errcall = ErrorCallback(errfun)
 
                 return self._callback
+            else:
+                raise CmdBaseException("Could not determine callback.")
 
     def add_option(
         self,
@@ -43,19 +47,22 @@ class BaseCommand:
         modifier: OptionModifier = OptionModifier.NoModifier,
         type: BasicTypes = str,
     ):
-        """Adds an option to callback.
+        """Adds an option to the callback.
+
+        A wrapper for Options.add()
 
         Parameters
         ----------
         name : str
             The option name.
-        default : str
-            Default value if argument is not specified.
+        default : Any
+            The default value.
         modifier : OptionModifier
-            The option modifier,
-            some modifier used to modify the value.
+            The option modifier.
+        append : bool
+            Adds option with append mode.
         type : BasicType
-            Convert the value to specified type.
+            Converter target type.
         """
         self.callback.options.add(name, default, modifier, append=True, type=type)
 
@@ -71,10 +78,11 @@ class Command(BaseCommand):
         The aliases of the command.
     """
 
-    def __init__(self, name: str, aliases: List[str] = None):
+    def __init__(self, name: str, aliases: Optional[List[str]] = None):
         if aliases is None:
-            aliases = []
-        self._aliases = aliases
+            self._aliases = []
+        else:
+            self._aliases = aliases
         super().__init__(name)
 
     @property
@@ -87,19 +95,19 @@ class Command(BaseCommand):
 
 
 class Container:
-    """Command struct or class container class.
+    """Container for command classes.
 
     Parameters
     ----------
     commands : List[Command]
-        List of command struct or class to store.
+        List of command structs or classes.
     """
 
-    def __init__(self, commands: List[Command] = None):
-        if not commands:
-            commands = []
-
-        self.commands = commands
+    def __init__(self, commands: Optional[List[Command]] = None):
+        if commands is None:
+            self.commands = []
+        else:
+            self.commands = commands
 
     def __iter__(self):
         yield from self.commands
@@ -124,7 +132,7 @@ class Container:
         return names
 
     def get_command(self, name: str) -> Optional[Command]:
-        """get command object by name.
+        """gets a command object by name.
 
         Parameters
         ----------
@@ -136,7 +144,7 @@ class Container:
                 return cmd
 
     def has_command(self, name: str) -> bool:
-        """Checks if the container has a command.
+        """Checks if the container has the specified command.
 
         Parameters
         ----------
@@ -146,24 +154,22 @@ class Container:
         return name in self.get_names()
 
     async def run(
-        self, command: Cmd, *, attrs: Union[Attributes, Dict[str, Any]] = None
+        self, command: Cmd, *, attrs: AttributeType = None
     ):
-        """Executes a command in container by the command object.
+        """Executes a matched command from the container.
 
         Parameters
         ----------
         command : Cmd
-            The command object.
-        attrs : dict or Attributes
-            Attributes to pass to the callback context.
+            The command to be executed.
+        attrs : AttributeType
+            Additional attributes to be passed to the callback context.
 
         Raises
         ------
         NotFoundError
-            If the specified command is not found in the container.
+            If the command is not found.
         """
-        if attrs is None:
-            attrs = {}
 
         for cmd in self.commands:
             if cmd.name == command.name or command.name in cmd.aliases:
@@ -188,7 +194,7 @@ class GroupWrapper(Command):
         The command aliases.
     """
 
-    def __init__(self, name: str, aliases: List[str] = None):
+    def __init__(self, name: str, aliases: Optional[List[str]] = None):
         super().__init__(name, aliases)
 
     def __call__(self, *args, **kwargs):
@@ -207,16 +213,15 @@ class Group(Container):
     name : str
         The group name
     commands : List[Command]
-        List of command struct or class
-        to store to the container.
+        List of command structs or classes.
     """
 
-    def __init__(self, name: str, commands: List[Command] = None):
+    def __init__(self, name: str, commands: Optional[List[Command]] = None):
         self.name = name
         super().__init__(commands)
 
-    def command(self, name: str = None, *, aliases: List[str] = None):
-        """stores a command struct or class to the container.
+    def command(self, name: str = "", *, aliases: Optional[List[str]] = None):
+        """assigns the target command struct or class to the container.
 
         Parameters
         ----------
@@ -225,6 +230,7 @@ class Group(Container):
         aliases : List[str]
             The command aliases.
         """
+
         if aliases is None:
             aliases = []
 

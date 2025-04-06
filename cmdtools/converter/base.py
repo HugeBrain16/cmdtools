@@ -1,15 +1,17 @@
-from typing import Union
+from typing import TypeAlias, Type, Union
 
 __all__ = [
     "BaseConverter",
+    "BaseType",
     "BasicTypes",
 ]
 
-BasicTypes = Union[int, float, str, bool]
+BaseType: TypeAlias = Union[int, float, str, bool]
+BasicTypes: TypeAlias = Type[BaseType]
 
 
 class BaseConverter:
-    """base class for converter"""
+    """The converter base class"""
 
-    def __init__(self, value: BasicTypes):
+    def __init__(self, value: BaseType):
         self.value = value
