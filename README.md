@@ -1,6 +1,6 @@
 <div id="headline" align="center">
   <h1>cmdtools</h1>
-  <p>A (not quite) flexible command framework.</p>
+  <p>A flexible command framework.</p>
   <a href="https://github.com/HugeBrain16/cmdtools/actions/workflows/python-package.yml">
     <img src="https://github.com/HugeBrain16/cmdtools/actions/workflows/python-package.yml/badge.svg" alt="tests"></img>
   </a>
