@@ -10,7 +10,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name="cmdtools-py",
-    description="A (not quite) flexible command framework",
+    description="A flexible command framework",
     version=version,
     author="HugeBrain16",
     author_email="hugebrain16@gmail.com",
